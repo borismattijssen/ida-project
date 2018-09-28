@@ -8,27 +8,58 @@ heart$chd_fac = as.factor(heart$chd)
 
 ############# Visualisation #############
 
-# Show relation between family history and chd
-boxplot(heart$chd ~heart$famhist, xlab='Family history', ylab='Coronary heart disease')
+## Show relation between family history and chd
+# create table
 counts <- table(heart$chd, heart$famhist)
-barplot(counts, legend=c('chd=0', 'chd=1'), xlab='Family history')
-counts_prop <- prop.table(counts,2)
-counts_prop
+# transform to dataframe
+table_df <- as.data.frame(prop.table(counts,2))
+# add column with formatted text
+table_df$Freq_lab = paste(round(table_df$Freq * 100, digits=2), "%")
+# bar plot
+ggplot(data=table_df, aes(x=Var2, y=Freq, fill=Var1)) + 
+  geom_bar(stat="identity", position=position_dodge()) + 
+  geom_text(aes(label=Freq_lab), vjust=1.6, color="white",
+            position = position_dodge(0.9), size=3.5) +
+  xlab('Family history') +
+  ylab('Frequency') + 
+  guides(fill=guide_legend(title='chd')) + 
+  ggtitle('Influence of Family History on Coronary Heart Disease')
 
 # Split dataset in young and old (treshold = 40 years old)
 heart_young <- heart[heart$age < 40,]
 heart_old <- heart[heart$age >= 40,]
 
-# Plot for young people (< 40)
+## Plot for young people (< 40)
+# create table
 counts_young <- table(heart_young$chd, heart_young$famhist)
-barplot(counts_young, legend=c('chd=0', 'chd=1'), xlab='Family history (age < 40)')
-counts_young_prop <- prop.table(counts_young,2)
-counts_young_prop
+# transform to dataframe
+table_df_young <- as.data.frame(prop.table(counts_young,2))
+# add column with formatted text
+table_df_young$Freq_lab = paste(round(table_df_young$Freq * 100, digits=2), "%")
+# bar plot
+ggplot(data=table_df_young, aes(x=Var2, y=Freq, fill=Var1)) + 
+  geom_bar(stat="identity", position=position_dodge()) + 
+  geom_text(aes(label=Freq_lab), vjust=1.6, color="white",
+            position = position_dodge(0.9), size=3.5) +
+  xlab('Family history') +
+  ylab('Frequency') + 
+  guides(fill=guide_legend(title='chd')) + 
+  ggtitle('Influence of Family History on Coronary Heart Disease (age < 40)')
 
-# Plot for old people (>= 40)
+
+## Plot for old people (>= 40)
+# create table
 counts_old <- table(heart_old$chd, heart_old$famhist)
-barplot(counts_old, legend=c('chd=0', 'chd=1'), xlab='Family history (age >= 40)')
-counts_old_prop <- prop.table(counts_old,2)
-counts_old_prop
-
-############# Statistics #############
+# transform to dataframe
+table_df_old <- as.data.frame(prop.table(counts_old,2))
+# add column with formatted text
+table_df_old$Freq_lab = paste(round(table_df_old$Freq * 100, digits=2), "%")
+# bar plot
+ggplot(data=table_df_old, aes(x=Var2, y=Freq, fill=Var1)) + 
+  geom_bar(stat="identity", position=position_dodge()) + 
+  geom_text(aes(label=Freq_lab), vjust=1.6, color="white",
+            position = position_dodge(0.9), size=3.5) +
+  xlab('Family history') +
+  ylab('Frequency') + 
+  guides(fill=guide_legend(title='chd')) + 
+  ggtitle('Influence of Family History on Coronary Heart Disease (age >= 40)')
