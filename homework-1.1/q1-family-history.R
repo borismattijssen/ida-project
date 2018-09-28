@@ -25,6 +25,9 @@ ggplot(data=table_df, aes(x=Var2, y=Freq, fill=Var1)) +
   guides(fill=guide_legend(title='chd')) + 
   ggtitle('Influence of Family History on Coronary Heart Disease')
 
+tablex = xtabs(~famhist+chd, data=heart)
+mosaic(tablex, gp=shading_max, split_vertical=TRUE)
+
 # Split dataset in young and old (treshold = 40 years old)
 heart_young <- heart[heart$age < 40,]
 heart_old <- heart[heart$age >= 40,]

@@ -1,0 +1,80 @@
+---
+title: "Intelligent Data Analysis — Homework 1.1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+blabla
+```{r}
+load('heart.Rdata')
+library(ggplot2)
+library("vcd")
+str(heart)
+```
+
+```{r}
+head(heart)
+```
+
+## 1. Influence of family history on Corony Heart Disease
+In this section we will investigate the influence of the family history on the chance of getting corony heart disease (CHD). That is, does the chance of getting CHD change given the absense or presence of heart diseases in the family? Furthermore, we will explore whether these influences change if we take subgroups of the data into account based on age. 
+
+The full research question that we consider is: *Does having a family history of coronary heart disease affect a patients chance of having coronary heart disease? Does this result change for patients younger than 40 years old? What about for patients aged 40 years or older?*. 
+
+First, we will visualize the data for the three given groups: the full data set, the subgroup of subjects younger than 40, and the subgroup of people older than 40. Thereafter, we describe a data analysis plan that could be used to quantitatively address the research question. 
+
+### Visualization
+We should start with visualizing the data to get an intuition for our quantitative data analysis plan. In this section we present figures for the three subject groups that are being considered. 
+
+#### All subjects considered
+We use a bar plot to show the likelihood of having CHD given a absence or presence of a family history of heart diseases. 
+
+```{r}
+# create table
+counts <- table(heart$chd, heart$famhist)
+# transform to dataframe
+table_df <- as.data.frame(prop.table(counts,2))
+# add column with formatted text
+table_df$Freq_lab = paste(round(table_df$Freq * 100, digits=2), "%")
+# bar plot
+ggplot(data=table_df, aes(x=Var2, y=Freq, fill=Var1)) + 
+  geom_bar(stat="identity", position=position_dodge()) + 
+  geom_text(aes(label=Freq_lab), vjust=1.6, color="white",
+            position = position_dodge(0.9), size=3.5) +
+  xlab('Family history') +
+  ylab('Frequency') + 
+  guides(fill=guide_legend(title='chd')) + 
+  ggtitle('Influence of Family History on Coronary Heart Disease')
+```
+
+More interesting that vanilla bar plots would be to look at a mosaic plot. Such a mosaic plot colours the plot according to the Pearson residuals. The plot below shows that there is indeed significant difference between the two `famhist` groups, indicated by the dark colours. 
+```{r}
+# Draw the mosaic plot
+countsx = xtabs(~famhist+chd, data=heart)
+mosaic(countsx, gp=shading_max, split_vertical=TRUE)
+```
+
+#### Age < 40 
+```{r}
+# Split the dataset
+heart_young <- heart[heart$age < 40,]
+# Draw the mosaic plot
+countsx_young = xtabs(~famhist+chd, data=heart_young)
+mosaic(countsx_young, gp=shading_max, split_vertical=TRUE)
+```
+
+#### Age >= 40
+```{r}
+# Split the dataset
+heart_old <- heart[heart$age >= 40,]
+# Draw the mosaic plot
+countsx_old = xtabs(~famhist+chd, data=heart_old)
+mosaic(countsx_old, gp=shading_max, split_vertical=TRUE)
+```
+
+### Data analysis plan
+Chi-sq test
