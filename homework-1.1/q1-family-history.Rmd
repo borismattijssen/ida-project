@@ -51,7 +51,7 @@ ggplot(data=table_df, aes(x=Var2, y=Freq, fill=Var1)) +
   ggtitle('Influence of Family History on Coronary Heart Disease')
 ```
 
-More interesting that vanilla bar plots would be to look at a mosaic plot. This plot is used to see how much the group distributions deviate from the expected distributions. Furthermore, it colours the groups according to the Pearson residuals. The plot below shows that there is indeed significant difference between the two `famhist` groups, indicated by the dark colours. 
+More interesting that vanilla bar plots would be to look at a mosaic plot. This plot is used to see how much the group distributions deviate from the expected distributions. Furthermore, it colours the groups according to the Pearson residuals. The plot below shows that there is indeed significant difference between the two `famhist` groups, indicated by the dark colours. The colors here indicate that it will be less likely to have CHD when family history is absent and more likely to have CHD when family history is present. 
 ```{r}
 # Draw the mosaic plot
 countsx = xtabs(~famhist+chd, data=heart)
