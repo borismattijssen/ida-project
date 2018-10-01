@@ -12,7 +12,7 @@ blabla
 ```{r}
 load('heart.Rdata')
 library(ggplot2)
-library("vcd")
+library(vcd)
 str(heart)
 ```
 
@@ -23,7 +23,7 @@ head(heart)
 ## 1. Influence of family history on Corony Heart Disease
 In this section we will investigate the influence of the family history on the chance of getting corony heart disease (CHD). That is, does the chance of getting CHD change given the absense or presence of heart diseases in the family? Furthermore, we will explore whether these influences change if we take subgroups of the data into account based on age. 
 
-The full research question that we consider is: *Does having a family history of coronary heart disease affect a patients chance of having coronary heart disease? Does this result change for patients younger than 40 years old? What about for patients aged 40 years or older?*. 
+The full research question that we consider is: *Does having a family history of coronary heart disease affect a patients chance of having coronary heart disease? Does this result change for patients younger than 40 years old? What about for patients aged 40 years or older?*
 
 First, we will visualize the data for the three given groups: the full data set, the subgroup of subjects younger than 40, and the subgroup of people older than 40. Thereafter, we describe a data analysis plan that could be used to quantitatively address the research question. 
 
@@ -31,7 +31,7 @@ First, we will visualize the data for the three given groups: the full data set,
 We should start with visualizing the data to get an intuition for our quantitative data analysis plan. In this section we present figures for the three subject groups that are being considered. 
 
 #### All subjects considered
-We use a bar plot to show the likelihood of having CHD given a absence or presence of a family history of heart diseases. 
+We use a bar plot to show the likelihood of having CHD given the absence or presence of a family history of heart diseases. This will serve as a good first intuition by spotting the differences between the Absent and Present groups.  
 
 ```{r}
 # create table
@@ -51,7 +51,7 @@ ggplot(data=table_df, aes(x=Var2, y=Freq, fill=Var1)) +
   ggtitle('Influence of Family History on Coronary Heart Disease')
 ```
 
-More interesting that vanilla bar plots would be to look at a mosaic plot. Such a mosaic plot colours the plot according to the Pearson residuals. The plot below shows that there is indeed significant difference between the two `famhist` groups, indicated by the dark colours. 
+More interesting that vanilla bar plots would be to look at a mosaic plot. This plot is used to see how much the group distributions deviate from the expected distributions. Furthermore, it colours the groups according to the Pearson residuals. The plot below shows that there is indeed significant difference between the two `famhist` groups, indicated by the dark colours. 
 ```{r}
 # Draw the mosaic plot
 countsx = xtabs(~famhist+chd, data=heart)
@@ -59,6 +59,8 @@ mosaic(countsx, gp=shading_max, split_vertical=TRUE)
 ```
 
 #### Age < 40 
+We now take a subset of the data of only those subjects younger than 40 years. This plot shows that for this subgroup we have much less reason to believe that `famhist` is of incluence on having CHD.
+
 ```{r}
 # Split the dataset
 heart_young <- heart[heart$age < 40,]
@@ -68,6 +70,8 @@ mosaic(countsx_young, gp=shading_max, split_vertical=TRUE)
 ```
 
 #### Age >= 40
+Lastly, we consider the other part of the data, subjects of 40 years or older. Here again we see that `famhist` can be considered a explanatory variable for CHD. 
+
 ```{r}
 # Split the dataset
 heart_old <- heart[heart$age >= 40,]
@@ -77,4 +81,6 @@ mosaic(countsx_old, gp=shading_max, split_vertical=TRUE)
 ```
 
 ### Data analysis plan
-Chi-sq test
+The mosaic plots presented above give us a good intuition about the influence of family history on CHD. Here we will present a plan to quantitively test our hypothesis. 
+
+We will use a chi-square test, which can be used to observe whether there is a significant difference between expected frequencies and observed frequencies in one or more categories. It will test the null hypothesis that the observed frequency is the same as the theoretical distribution. In other words, if the family history is of **no** influence. If we observe a low P-value, we can reject the null hypothesis and conclude that indeed family history is of influence on CHD.
