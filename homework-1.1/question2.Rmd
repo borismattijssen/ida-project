@@ -19,6 +19,11 @@ library(ggplot2)
 
 
 ##### Try to understand the different distributions of the ldl level in the two categories, by a Boxplot:
+
+
+We try to figure out if there is any difference in the distribution of the continuous variable ldl, for the two different groups of observations, by a boxplot. Outliers are also investigated here.
+
+
 ```{r}
 ggplot(data = heart, aes(y=heart$ldl, x=heart$famhist, col=heart$famhist))+ 
   geom_boxplot()+
@@ -30,32 +35,41 @@ ggplot(data = heart, aes(y=heart$ldl, x=heart$famhist, col=heart$famhist))+
 
 
 
-from this first plot, we can already notice a difference in the distribution of the quantiles, for the two categories, even if there are quite much overlapping between the two boxes.
+From this first plot, we can already notice a difference in the distribution of the quantiles, for the two groups, even if there are quite much overlapping between the two boxes.
 As expected, the median of the ldl value for the people without any cases of diseas in his family history, is lower. The values of the other quantiles follow this trend.
-
+Something different happens for the outliers. Some observation from the first group (famhist = Absent) report higher values than any other observation from the second group.
 
 
 
 ##### Divide the dataset in the two categories of Famhist
+
+Than we start having a look at the distribution of the continuous variable for the two group, separated.
+We proceed by plotting the histogram for the splitted dataset.
+
 ```{r}
 heart_fam_yes <- heart[heart$famhist == 'Present',]
 heart_fam_no <- heart[heart$famhist == 'Absent',]
 ```
 
-##### histogram for the two category, separated
+##### Histogram for the two category, separated
+
 ```{r}
 ggplot(heart_fam_no, aes(x=heart_fam_no$ldl, color = heart_fam_no$famhist)) +
-  geom_histogram(fill="#F8766D", binwidth = 1) +
+  geom_histogram(fill="#F8766D", binwidth = 0.5) +
   xlab("ldl") +
   labs(color="familiy history")
 
 ggplot(heart_fam_yes, aes(x=heart_fam_yes$ldl, color=heart_fam_yes$famhist )) +
-  geom_histogram(fill='#00BFC4', binwidth = 1) +
+  geom_histogram(fill='#00BFC4', binwidth = 0.5) +
   xlab("ldl") +
   labs(color="familiy history")
 ```
 
-##### and together
+We can already notice a different distribution for the two groups, but we still need to combine the two histograms in a single plot for having a better idea, since the variable has two different intervals, according to the group.
+
+
+
+##### And together
 ```{r}
 
 #calculate the mean for the two groups of family history
@@ -77,24 +91,33 @@ ggplot(heart, aes(x=(heart$ldl), fill=heart$famhist)) +
   ylab("distribution")
 ```
 
+Combining all informations together, we can confirm what started to appear from the very first plot.
+The difference in term of distribution enhance the tendency of having slightly high ldl for people with a Present value in Famhist.
 
-here the difference in term of distribution enhance the tendency of having slightly high ldl for people with a Present value in Famhist.
+##### Discretize the continuous variable ldl, in three categories, using the quantiles
 
+Then we try a different approch, we discretized the variable ldl in three groups, in order to create a contingency table, and compare it to the values of the null hypothesis (independence).
+We report the result in a mosaic plot. 
 
-##### discretize the continuous variable ldl, in three categories, using the quantiles
 ```{r}
 xs=quantile(heart$ldl,c(0,1/3,2/3,1))
 xs[1]=xs[1]-.00005
 heart$discr.ldl <- cut(heart$ldl, breaks = xs, labels = c('low','medium','high'))
 ```
 
-##### mosaic plot
+##### Mosaic plot
 ```{r}
 library("vcd")
 table.heart=xtabs(~famhist+discr.ldl, data=heart)
 mosaic(table.heart, gp=shading_max, split_vertical=TRUE)
 ```
-the mosaic plot, show the difference between a null model (independence) and our dataset. The two red areas indicate that there are less cases in the dataset than we expected if the two variables were independent. Viceversa for the blues squares.
+The mosaic plot, show the difference between a null model (independence) and our dataset. The two red areas indicate that there are less cases in the dataset than we expected if the two variables were independent. Viceversa for the blues squares.
 As before, the tendency that an absence of heart deseas in family history lead to a low value of ldl, is highlighted.
+
+
+##Data analysis plan
+
+We plan to model the empirical distribution of the variable ldl for the two groups and see if they are actually different, for a quite reasonable confidence level. 
+
 
 
