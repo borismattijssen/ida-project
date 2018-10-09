@@ -1,0 +1,164 @@
+---
+title: "Question 3"
+output: html_document
+---
+ 
+```{r setup, include=FALSE}
+ knitr::opts_chunk$set(echo = TRUE)
+```
+ 
+# Goal
+ 
+####Explore the relationship between ldl levels and attributes such as tobacco, obesity, adiposity and alcohol.We want to check if there is a strong correlation between ldl levels and those four variables often associater to higher risk of disease.
+ 
+ 
+```{r}
+load("heart.Rdata")
+library(Amelia)
+library(corrplot)
+library(plyr)
+library(ggplot2)
+```
+
+#Exploring very roughly the variable ldl and the dataset
+
+####Missing data
+Check if any data is missing
+```{r}
+missmap(heart)
+```
+
+There are no missing data.
+
+####Boxplot
+
+```{r}
+boxplot(heart$ldl)
+```
+
+####Histograms
+
+```{r}
+hist(heart$ldl)
+```
+
+It is quite far from being gaussian.
+
+####Boxplot log(ldl)
+
+```{r}
+boxplot(log(heart$ldl))
+```
+
+####Histogram log(ldl)
+```{r}
+hist(log(heart$ldl))
+```
+
+Looks gaussian, maybe we will use for a further analysis
+
+##do you guys know a faster way to plot 4 ggplots at the same time?
+```{r,echo=FALSE}
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+```
+
+
+
+#####Adding log(tobacco) and log(alcohol) to the dataframe
+#####does it makes sense in your opinion? or i should just keep tobacco and alcohol?
+
+```{r}
+heart$logtob=log(heart$tobacco)
+heart$logalc=log(heart$alcohol)
+```
+
+#Scatterplots
+
+```{r}
+p1=ggplot(data=heart,aes(x=heart$logtob,y=heart$ldl)) +
+  geom_point()+
+  xlab('log(tobacco)')+
+  ylab('ldl')
+p2=ggplot(data=heart,aes(x=heart$logalc,y=heart$ldl)) +
+  geom_point()+
+  xlab('log(alcohol)')+
+  ylab('ldl')
+p3=ggplot(data=heart,aes(x=heart$adiposity,y=heart$ldl)) +
+  geom_point()+
+  xlab('adiposity')+
+  ylab('ldl')
+p4=ggplot(data=heart,aes(x=heart$obesity,y=heart$ldl)) +
+  geom_point()+
+  xlab('obesity')+
+  ylab('ldl')
+
+multiplot(p1,p2,p3,p4,cols=2)
+```
+
+We can see tobacco and alcohol do not seem to affect relevantly the ldl level.
+Instead higher levels of adiposity and obesity seem to be related with higher ldl levels. 
+
+
+
+#Correlation plot
+
+We display a matrix showing correlation between ldl,adiposity,obesity,tobacco and alcohol.
+
+```{r}
+heartred=as.data.frame(heart[,2:4],title=TRUE)
+heartred$obesity<-heart$obesity
+heartred$alcohol<-heart$alcohol
+
+M<-cor(heartred)
+corrplot(M,method="circle")
+```
+
+The most important positive correlations for ldl are adiposity and obesity.
+We can also note that adiposity has a strong correlation with obesity and tobacco.
+
+####Data analysis plan
+
+One of the simplest tecniques to build a prediction model for a numerical response based on numerical predictors is linear modelling.
+Since adiposity and obesity are strongly correlated we would omit one of the two from the model.
+
+```{r}
+#g=lm(log(ldl)~tobacco+alcohol,heart) wich one is better??
+g=lm(ldl~tobacco+alcohol+obesity,heart)
+summary(g)
+shapiro.test(g$residuals)
+```
+
