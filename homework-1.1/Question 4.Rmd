@@ -1,0 +1,92 @@
+---
+title: "Question 4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Goal
+Explore the relationship between ldl levels and chd (coronary heart disease)
+
+```{r}
+load('heart.Rdata')
+library(plyr)
+library(ggplot2)
+```
+
+#### We'll try to understand the different distributions of the ldl levels in the both categories using box plots:
+
+In this situation, we'll try to figure out if there is any difference or effect due to the presence or not of coronary heart disease in the distribution of the continuous variable ldl, for the two different groups of observations, by a boxplot. Outliers are also investigated here
+
+```{r}
+ggplot(data = heart, aes(y=heart$ldl, x=heart$chd, group=heart$chd))+ 
+  geom_boxplot()+  xlab('Presence of coronary heart disease')+
+  ylab('ldl')+
+  ggtitle('Different distribution in ldl for the two groups of observation')+
+  labs(col="Coronary heart disease")
+```
+
+From these two plots, we can already notice a difference in the distribution of the quantiles due to the presence or not of coronary heart disease. Indeed, the median of the ldl levels for people without any case of coronary heart disease is lower as well as the values of the quantiles
+
+
+##### Divide the dataset in the two groups
+
+Lets check the repartition of people between the twe groups : those who have coronary heart disease and those who don't.
+We proceed by plotting the histogram for the splitted dataset
+
+```{r}
+barplot(table(heart$chd))
+heart_chd_si <- heart[heart$chd==1,]
+heart_chd_no <- heart[heart$chd==0,]
+```
+
+##### Histogram for the two category, separated
+
+```{r}
+ggplot(heart_chd_no, aes(x=heart_chd_no$ldl)) +
+  geom_histogram()
+
+ggplot(heart_chd_si, aes(x=heart_chd_si$ldl)) +
+  geom_histogram()
+```
+
+We can already notice a different distribution for the two groups, but we still need to combine the two histograms in a single plot for having a better idea, since the variable has two different intervals, according to the group.
+
+
+##### And together
+
+
+```{r}
+ggplot(heart, aes(x = heart$ldl, fill =as.factor(heart$chd))) +
+  geom_histogram(position=position_dodge()) +
+  xlab("ldl") +
+  ylab("Total Count") +
+  labs(col = "chd")
+```
+
+
+We calculate the mean for the two groups as we did before : 
+
+```{r}
+mean.absent <- mean(heart_chd_no$ldl)
+mean.present <- mean(heart_chd_si$ldl)
+library(plyr)
+mu <- ddply(heart, .(chd), summarise, grp.mean=mean(heart$ldl))
+mu$grp.mean[1] <- mean.absent
+mu$grp.mean[2] <- mean.present
+
+#plot the graph
+ggplot(heart, aes(x=(heart$ldl), fill=as.factor(heart$chd))) +
+  geom_histogram(aes(y=..density..), alpha=0.7, position=position_dodge(), bins = 30)+
+  geom_vline(data=mu, aes(xintercept=grp.mean, color=c('Absent','Present')),
+             linetype="dashed")+
+  geom_density(alpha=0.4)+
+  labs(fill="Coronary heart disease", color = "mean")+
+  xlab("ldl") +
+  ylab("distribution")
+```
+
+
+Combining all informations together, we can confirm what started to appear from the very first plot :the difference in term of distribution enhance the tendency of having slightly high ldl for people with coronary heart disease.
