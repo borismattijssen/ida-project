@@ -1,0 +1,443 @@
+---
+title: "Homework 1.1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+```{r}
+load('heart.Rdata')
+library(ggplot2)
+library(vcd)
+str(heart)
+```
+
+```{r}
+head(heart)
+```
+
+# Question 1
+
+### 1. Influence of family history on Corony Heart Disease
+In this section we will investigate the influence of the family history on the chance of getting corony heart disease (CHD). That is, does the chance of getting CHD change given the absense or presence of heart diseases in the family? Furthermore, we will explore whether these influences change if we take subgroups of the data into account based on age. 
+
+The full research question that we consider is: *Does having a family history of coronary heart disease affect a patients chance of having coronary heart disease? Does this result change for patients younger than 40 years old? What about for patients aged 40 years or older?*
+
+First, we will visualize the data for the three given groups: the full data set, the subgroup of subjects younger than 40, and the subgroup of people older than 40. Thereafter, we describe a data analysis plan that could be used to quantitatively address the research question. 
+
+### Visualization
+We should start with visualizing the data to get an intuition for our quantitative data analysis plan. In this section we present figures for the three subject groups that are being considered. 
+
+#### All subjects considered
+We use a bar plot to show the likelihood of having CHD given the absence or presence of a family history of heart diseases. This will serve as a good first intuition by spotting the differences between the Absent and Present groups.  
+
+```{r}
+# create table
+counts <- table(heart$chd, heart$famhist)
+# transform to dataframe
+table_df <- as.data.frame(prop.table(counts,2))
+# add column with formatted text
+table_df$Freq_lab = paste(round(table_df$Freq * 100, digits=2), "%")
+# bar plot
+ggplot(data=table_df, aes(x=Var2, y=Freq, fill=Var1)) + 
+  geom_bar(stat="identity", position=position_dodge()) + 
+  geom_text(aes(label=Freq_lab), vjust=1.6, color="white",
+            position = position_dodge(0.9), size=3.5) +
+  xlab('Family history') +
+  ylab('Frequency') + 
+  guides(fill=guide_legend(title='chd')) + 
+  ggtitle('Influence of Family History on Coronary Heart Disease')
+```
+
+More interesting that vanilla bar plots would be to look at a mosaic plot. This plot is used to see how much the group distributions deviate from the expected distributions. Furthermore, it colours the groups according to the Pearson residuals. The plot below shows that there is indeed significant difference between the two `famhist` groups, indicated by the dark colours. The colors here indicate that it will be less likely to have CHD when family history is absent and more likely to have CHD when family history is present. 
+```{r}
+# Draw the mosaic plot
+countsx = xtabs(~famhist+chd, data=heart)
+mosaic(countsx, gp=shading_max, split_vertical=TRUE)
+```
+
+#### Age < 40 
+We now take a subset of the data of only those subjects younger than 40 years. This plot shows that for this subgroup we have much less reason to believe that `famhist` is of incluence on having CHD.
+
+```{r}
+# Split the dataset
+heart_young <- heart[heart$age < 40,]
+# Draw the mosaic plot
+countsx_young = xtabs(~famhist+chd, data=heart_young)
+mosaic(countsx_young, gp=shading_max, split_vertical=TRUE)
+```
+
+#### Age >= 40
+Lastly, we consider the other part of the data, subjects of 40 years or older. Here again we see that `famhist` can be considered a explanatory variable for CHD. 
+
+```{r}
+# Split the dataset
+heart_old <- heart[heart$age >= 40,]
+# Draw the mosaic plot
+countsx_old = xtabs(~famhist+chd, data=heart_old)
+mosaic(countsx_old, gp=shading_max, split_vertical=TRUE)
+```
+
+### Data analysis plan
+The mosaic plots presented above give us a good intuition about the influence of family history on CHD. Here we will present a plan to quantitively test our hypothesis. 
+
+We will use a chi-square test, which can be used to observe whether there is a significant difference between expected frequencies and observed frequencies in one or more categories. It will test the null hypothesis that the observed frequency is the same as the theoretical distribution. In other words, if the family history is of **no** influence. If we observe a low P-value, we can reject the null hypothesis and conclude that indeed family history is of influence on CHD.
+
+
+
+
+
+
+# Question 2
+
+### 2. Explore the relationship between ldl levels and the categorical variables in the data set.
+
+
+```{r}
+load('heart.Rdata')
+library(ggplot2)
+```
+
+
+##### Try to understand the different distributions of the ldl level in the two categories, by a Boxplot:
+
+
+We try to figure out if there is any difference in the distribution of the continuous variable ldl, for the two different groups of observations, by a boxplot. Outliers are also investigated here.
+
+
+```{r}
+ggplot(data = heart, aes(y=heart$ldl, x=heart$famhist, col=heart$famhist))+ 
+  geom_boxplot()+
+  xlab('Family history')+
+  ylab('ldl')+
+  ggtitle('different distribution in ldl for the two family types')+
+  labs(col="family history")
+```
+
+
+
+From this first plot, we can already notice a difference in the distribution of the quantiles, for the two groups, even if there are quite much overlapping between the two boxes.
+As expected, the median of the ldl value for the people without any cases of diseas in his family history, is lower. The values of the other quantiles follow this trend.
+Something different happens for the outliers. Some observation from the first group (famhist = Absent) report higher values than any other observation from the second group.
+
+
+
+##### Divide the dataset in the two categories of Famhist
+
+Than we start having a look at the distribution of the continuous variable for the two group, separated.
+We proceed by plotting the histogram for the splitted dataset.
+
+```{r}
+heart_fam_yes <- heart[heart$famhist == 'Present',]
+heart_fam_no <- heart[heart$famhist == 'Absent',]
+```
+
+##### Histogram for the two category, separated
+
+```{r}
+ggplot(heart_fam_no, aes(x=heart_fam_no$ldl, color = heart_fam_no$famhist)) +
+  geom_histogram(fill="#F8766D", binwidth = 0.5) +
+  xlab("ldl") +
+  labs(color="familiy history")
+
+ggplot(heart_fam_yes, aes(x=heart_fam_yes$ldl, color=heart_fam_yes$famhist )) +
+  geom_histogram(fill='#00BFC4', binwidth = 0.5) +
+  xlab("ldl") +
+  labs(color="familiy history")
+```
+
+We can already notice a different distribution for the two groups, but we still need to combine the two histograms in a single plot for having a better idea, since the variable has two different intervals, according to the group.
+
+
+
+##### And together
+```{r}
+
+#calculate the mean for the two groups of family history
+mean.absent <- mean(heart_fam_no$ldl)
+mean.present <- mean(heart_fam_yes$ldl)
+library(plyr)
+mu <- ddply(heart, .(famhist), summarise, grp.mean=mean(heart$ldl))
+mu$grp.mean[1] <- mean.absent
+mu$grp.mean[2] <- mean.present
+
+#plot the graph
+ggplot(heart, aes(x=(heart$ldl), fill=heart$famhist)) +
+  geom_histogram(aes(y=..density..), alpha=0.7, position=position_dodge(), bins = 30)+
+  geom_vline(data=mu, aes(xintercept=grp.mean, color=c('Absent','Present')),
+             linetype="dashed")+
+  geom_density(alpha=0.4)+
+  labs(fill="familiy history", color = "mean")+
+  xlab("ldl") +
+  ylab("distribution")
+```
+
+Combining all informations together, we can confirm what started to appear from the very first plot.
+The difference in term of distribution enhance the tendency of having slightly high ldl for people with a Present value in Famhist.
+
+##### Discretize the continuous variable ldl, in three categories, using the quantiles
+
+Then we try a different approch, we discretized the variable ldl in three groups, in order to create a contingency table, and compare it to the values of the null hypothesis (independence).
+We report the result in a mosaic plot. 
+
+```{r}
+xs=quantile(heart$ldl,c(0,1/3,2/3,1))
+xs[1]=xs[1]-.00005
+heart$discr.ldl <- cut(heart$ldl, breaks = xs, labels = c('low','medium','high'))
+```
+
+##### Mosaic plot
+```{r}
+library("vcd")
+table.heart=xtabs(~famhist+discr.ldl, data=heart)
+mosaic(table.heart, gp=shading_max, split_vertical=TRUE)
+```
+The mosaic plot, show the difference between a null model (independence) and our dataset. The two red areas indicate that there are less cases in the dataset than we expected if the two variables were independent. Viceversa for the blues squares.
+As before, the tendency that an absence of heart deseas in family history lead to a low value of ldl, is highlighted.
+
+
+##Data analysis plan
+
+We plan to model the empirical distribution of the variable ldl for the two groups and see if they are actually different, for a quite reasonable confidence level.
+So, after checking that the distribution of values for the two groups follows a normal distribution, we perform a t-test, for confirming or rejecting the hypotesis that their values of real mean are different.
+
+
+
+# Question 3
+
+### Explore the relationship between ldl levels and attributes such as tobacco, obesity, adiposity and alcohol.We want to check if there is a strong correlation between ldl levels and those four variables often associater to higher risk of disease.
+ 
+ 
+```{r}
+load("heart.Rdata")
+library(Amelia)
+library(corrplot)
+library(plyr)
+library(ggplot2)
+```
+
+#Exploring very roughly the variable ldl and the dataset
+
+####Missing data
+Check if any data is missing
+```{r}
+missmap(heart)
+```
+
+There are no missing data.
+
+####Boxplot
+
+```{r}
+boxplot(heart$ldl)
+```
+
+####Histograms
+
+```{r}
+hist(heart$ldl)
+```
+
+It is quite far from being gaussian.
+
+####Boxplot log(ldl)
+
+```{r}
+boxplot(log(heart$ldl))
+```
+
+####Histogram log(ldl)
+```{r}
+hist(log(heart$ldl))
+```
+
+Looks gaussian, maybe we will use for a further analysis
+
+```{r,echo=FALSE}
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+```
+
+
+
+#####Adding log(tobacco) and log(alcohol) to the dataframe
+
+
+```{r}
+heart$logtob=log(heart$tobacco)
+heart$logalc=log(heart$alcohol)
+```
+
+#Scatterplots
+
+```{r}
+p1=ggplot(data=heart,aes(x=heart$logtob,y=heart$ldl)) +
+  geom_point()+
+  xlab('log(tobacco)')+
+  ylab('ldl')
+p2=ggplot(data=heart,aes(x=heart$logalc,y=heart$ldl)) +
+  geom_point()+
+  xlab('log(alcohol)')+
+  ylab('ldl')
+p3=ggplot(data=heart,aes(x=heart$adiposity,y=heart$ldl)) +
+  geom_point()+
+  xlab('adiposity')+
+  ylab('ldl')
+p4=ggplot(data=heart,aes(x=heart$obesity,y=heart$ldl)) +
+  geom_point()+
+  xlab('obesity')+
+  ylab('ldl')
+
+multiplot(p1,p2,p3,p4,cols=2)
+```
+
+We can see tobacco and alcohol do not seem to affect relevantly the ldl level.
+Instead higher levels of adiposity and obesity seem to be related with higher ldl levels. 
+
+
+
+#Correlation plot
+
+We display a matrix showing correlation between ldl,adiposity,obesity,tobacco and alcohol.
+
+```{r}
+heartred=as.data.frame(heart[,2:4],title=TRUE)
+heartred$obesity<-heart$obesity
+heartred$alcohol<-heart$alcohol
+
+M<-cor(heartred)
+corrplot(M,method="circle")
+```
+
+The most important positive correlations for ldl are adiposity and obesity.
+We can also note that adiposity has a strong correlation with obesity and tobacco.
+
+####Data analysis plan
+
+One of the simplest tecniques to build a prediction model for a numerical response based on numerical predictors is linear modelling.
+Since adiposity and obesity are strongly correlated we would omit one of the two from the model.
+
+```{r}
+g=lm(ldl~tobacco+alcohol+obesity,heart)
+summary(g)
+shapiro.test(g$residuals)
+```
+
+
+#Question 4
+
+
+### 4. Influence of ldl levels on coronary heart disease
+We are going to explore the relationship between ldl levels and chd (coronary heart disease). Our question at hand is: *Does the ldl level influence the patients chance of having coronory heart disease?*
+
+```{r}
+load('heart.Rdata')
+library(plyr)
+library(ggplot2)
+```
+
+### Visulization
+
+We will try to understand the different distributions of the ldl levels in the both categories using box plots:
+
+In this situation, we will try to figure out if there is any difference or effect due to the presence or not of coronary heart disease in the distribution of the continuous variable ldl, for the two different groups of observations, by a boxplot. Outliers are also investigated here
+
+```{r}
+ggplot(data = heart, aes(y=heart$ldl, x=heart$chd, group=heart$chd))+ 
+  geom_boxplot()+  xlab('Presence of coronary heart disease')+
+  ylab('ldl')+
+  ggtitle('Different distribution in ldl for the two groups of observation')+
+  labs(col="Coronary heart disease")
+```
+
+From these two plots, we can already notice a difference in the distribution of the quantiles due to the presence or not of coronary heart disease. Indeed, the median of the ldl levels for people without any case of coronary heart disease is lower as well as the values of the quantiles
+
+
+#### Divide the dataset in the two groups
+
+Lets check the repartition of people between the twe groups : those who have coronary heart disease and those who don't.
+We proceed by plotting the histogram for the splitted dataset
+
+```{r}
+barplot(table(heart$chd))
+heart_chd_si <- heart[heart$chd==1,]
+heart_chd_no <- heart[heart$chd==0,]
+```
+
+#### Histogram for the two category, separated
+
+```{r}
+ggplot(heart_chd_no, aes(x=heart_chd_no$ldl)) +
+  geom_histogram()
+
+ggplot(heart_chd_si, aes(x=heart_chd_si$ldl)) +
+  geom_histogram()
+```
+
+We can already notice a different distribution for the two groups, but we still need to combine the two histograms in a single plot for having a better idea, since the variable has two different intervals, according to the group.
+
+
+#### And together
+We calculate the mean for the two groups as we did before : 
+
+```{r}
+mean.absent <- mean(heart_chd_no$ldl)
+mean.present <- mean(heart_chd_si$ldl)
+library(plyr)
+mu <- ddply(heart, .(chd), summarise, grp.mean=mean(heart$ldl))
+mu$grp.mean[1] <- mean.absent
+mu$grp.mean[2] <- mean.present
+
+#plot the graph
+ggplot(heart, aes(x=(heart$ldl), fill=as.factor(heart$chd))) +
+  geom_histogram(aes(y=..density..), alpha=0.7, position=position_dodge(), bins = 30)+
+  geom_vline(data=mu, aes(xintercept=grp.mean, color=c('Absent','Present')),
+             linetype="dashed")+
+  geom_density(alpha=0.4)+
+  labs(fill="Coronary heart disease", color = "mean")+
+  xlab("ldl") +
+  ylab("distribution")
+```
+
+
+Combining all informations together, we can confirm what started to appear from the very first plot :the difference in term of distribution enhance the tendency of having slightly high ldl for people with coronary heart disease.
+
+### Data analysis plan
+To find out if the ldl level has an influence on the chance of gettig CHD we will use the following statistical set-up. We will split the dataset up in two groups: (i) those with CHD and (ii) those whitout CHD. Then, we use the Shapiro???Wilk test to see if both groups are distrubuted normally. If so, we will use a student t-test to see if there is a significant difference between the groups. If not, we will use a two-way anova test for this same purpose.
