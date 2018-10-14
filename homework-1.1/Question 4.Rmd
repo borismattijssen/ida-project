@@ -7,8 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#### Goal
-Explore the relationship between ldl levels and chd (coronary heart disease)
+## 4. Influence of ldl levels on coronary heart disease
+We are going to explore the relationship between ldl levels and chd (coronary heart disease). Our question at hand is: *Does the ldl level influence the patients chance of having coronory heart disease?*
 
 ```{r}
 load('heart.Rdata')
@@ -16,9 +16,11 @@ library(plyr)
 library(ggplot2)
 ```
 
-#### We'll try to understand the different distributions of the ldl levels in the both categories using box plots:
+### Visulization
 
-In this situation, we'll try to figure out if there is any difference or effect due to the presence or not of coronary heart disease in the distribution of the continuous variable ldl, for the two different groups of observations, by a boxplot. Outliers are also investigated here
+We will try to understand the different distributions of the ldl levels in the both categories using box plots:
+
+In this situation, we will try to figure out if there is any difference or effect due to the presence or not of coronary heart disease in the distribution of the continuous variable ldl, for the two different groups of observations, by a boxplot. Outliers are also investigated here
 
 ```{r}
 ggplot(data = heart, aes(y=heart$ldl, x=heart$chd, group=heart$chd))+ 
@@ -31,7 +33,7 @@ ggplot(data = heart, aes(y=heart$ldl, x=heart$chd, group=heart$chd))+
 From these two plots, we can already notice a difference in the distribution of the quantiles due to the presence or not of coronary heart disease. Indeed, the median of the ldl levels for people without any case of coronary heart disease is lower as well as the values of the quantiles
 
 
-##### Divide the dataset in the two groups
+#### Divide the dataset in the two groups
 
 Lets check the repartition of people between the twe groups : those who have coronary heart disease and those who don't.
 We proceed by plotting the histogram for the splitted dataset
@@ -42,7 +44,7 @@ heart_chd_si <- heart[heart$chd==1,]
 heart_chd_no <- heart[heart$chd==0,]
 ```
 
-##### Histogram for the two category, separated
+#### Histogram for the two category, separated
 
 ```{r}
 ggplot(heart_chd_no, aes(x=heart_chd_no$ldl)) +
@@ -55,18 +57,7 @@ ggplot(heart_chd_si, aes(x=heart_chd_si$ldl)) +
 We can already notice a different distribution for the two groups, but we still need to combine the two histograms in a single plot for having a better idea, since the variable has two different intervals, according to the group.
 
 
-##### And together
-
-
-```{r}
-ggplot(heart, aes(x = heart$ldl, fill =as.factor(heart$chd))) +
-  geom_histogram(position=position_dodge()) +
-  xlab("ldl") +
-  ylab("Total Count") +
-  labs(col = "chd")
-```
-
-
+#### And together
 We calculate the mean for the two groups as we did before : 
 
 ```{r}
@@ -90,3 +81,6 @@ ggplot(heart, aes(x=(heart$ldl), fill=as.factor(heart$chd))) +
 
 
 Combining all informations together, we can confirm what started to appear from the very first plot :the difference in term of distribution enhance the tendency of having slightly high ldl for people with coronary heart disease.
+
+### Data analysis plan
+To find out if the ldl level has an influence on the chance of gettig CHD we will use the following statistical set-up. We will split the dataset up in two groups: (i) those with CHD and (ii) those whitout CHD. Then, we use the Shapiro–Wilk test to see if both groups are distrubuted normally. If so, we will use a student t-test to see if there is a significant difference between the groups. If not, we will use a two-way anova test for this same purpose.
