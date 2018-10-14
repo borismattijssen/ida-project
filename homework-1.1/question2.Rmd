@@ -117,7 +117,8 @@ As before, the tendency that an absence of heart deseas in family history lead t
 
 ##Data analysis plan
 
-We plan to model the empirical distribution of the variable ldl for the two groups and see if they are actually different, for a quite reasonable confidence level. 
+We plan to model the empirical distribution of the variable ldl for the two groups and see if they are actually different, for a quite reasonable confidence level.
+So, after checking that the distribution of values for the two groups follows a normal distribution, we perform a t-test, for confirming or rejecting the hypotesis that their values of real mean are different.
 
 
 
