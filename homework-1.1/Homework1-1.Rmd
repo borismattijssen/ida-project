@@ -3,9 +3,19 @@ title: "Homework 1.1"
 output: html_document
 ---
 
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
+### Group members:
+- Ettore Puccetti
+- Lorenzo Foa
+- Mehdi El Idrissi
+- Boris Mattijssen
+
 
 ## Introduction
 
