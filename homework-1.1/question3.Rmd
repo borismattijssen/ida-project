@@ -57,7 +57,6 @@ hist(log(heart$ldl))
 
 Looks gaussian, maybe we will use for a further analysis
 
-##do you guys know a faster way to plot 4 ggplots at the same time?
 ```{r,echo=FALSE}
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   library(grid)
