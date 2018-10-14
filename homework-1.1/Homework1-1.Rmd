@@ -1,23 +1,29 @@
 ---
 title: "Homework 1.1"
 output: html_document
+author: Ettore Puccetti, Lorenzo Foa, Mehdi El Idrissi, Boris Mattijssen
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
-
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-### Group members:
-- Ettore Puccetti
-- Lorenzo Foa
-- Mehdi El Idrissi
-- Boris Mattijssen
-
-
 ## Introduction
+We chose the corony heart disease (CHD) dataset for this report. The dataset contains information about males in a heart-disease high-risk region of the Western Cape, South Africa. The report will provide results of the initials steps taken to address four research questions related to this dataset. Those initial steps are (i) to create relevant visualizations of (parts of) the data and (ii) sketching a data analysis plan that could be used to answer the questions in a quantitive way.
+
+The four questions that we address are:
+
+1. Does having a family history of coronary heart disease affect a patients chance of having coronary heart disease? Does this result change for patients younger than 40 years old? What about for patients aged 40 years or older?
+2. Explore the relationship between ldl levels and the categorical variables in the data set.
+3. Explore the relationship between ldl levels and attributes such as tobacco, obesity, adiposity and alcohol.
+4. Does the ldl level influence the patients chance of having coronory heart disease?
+
+The rest of this report is structured as follows. We start by executing some initial code. Then, four sections follow that each address one of the research questions. Per section, we provide visualizations, text, and code. Hence, the reader does not need any other source than this document. 
+
+## Initial code
+Let us start by loading the dataset and necessary libraries. 
 
 ```{r}
 load('heart.Rdata')
@@ -30,9 +36,7 @@ str(heart)
 head(heart)
 ```
 
-# Question 1
-
-### 1. Influence of family history on Corony Heart Disease
+## 1. Influence of family history on Corony Heart Disease
 In this section we will investigate the influence of the family history on the chance of getting corony heart disease (CHD). That is, does the chance of getting CHD change given the absense or presence of heart diseases in the family? Furthermore, we will explore whether these influences change if we take subgroups of the data into account based on age. 
 
 The full research question that we consider is: *Does having a family history of coronary heart disease affect a patients chance of having coronary heart disease? Does this result change for patients younger than 40 years old? What about for patients aged 40 years or older?*
@@ -102,9 +106,7 @@ We will use a chi-square test, which can be used to observe whether there is a s
 
 
 
-# Question 2
-
-### 2. Explore the relationship between ldl levels and the categorical variables in the data set.
+## 2. Explore the relationship between ldl levels and the categorical variables in the data set.
 
 
 ```{r}
@@ -217,7 +219,7 @@ So, after checking that the distribution of values for the two groups follows a 
 
 
 
-# Question 3
+## 3. Relationship between ldl and other attributes
 
 ### Explore the relationship between ldl levels and attributes such as tobacco, obesity, adiposity and alcohol.We want to check if there is a strong correlation between ldl levels and those four variables often associater to higher risk of disease.
  
@@ -370,11 +372,7 @@ summary(g)
 shapiro.test(g$residuals)
 ```
 
-
-#Question 4
-
-
-### 4. Influence of ldl levels on coronary heart disease
+## 4. Influence of ldl levels on coronary heart disease
 We are going to explore the relationship between ldl levels and chd (coronary heart disease). Our question at hand is: *Does the ldl level influence the patients chance of having coronory heart disease?*
 
 ```{r}
