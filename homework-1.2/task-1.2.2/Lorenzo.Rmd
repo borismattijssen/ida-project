@@ -1,0 +1,159 @@
+---
+title: "Permutation test"
+output: html_document
+---
+# Permutation test
+The goal of this analysis is to investigate correlation between the variables Bill and Tip expressed as a percentage on the bill.
+
+We are going to perform the permutation test on the hypothesis 
+H0: cov(Bill,PctTip)==0 
+                       vs.
+H1: cov(Bill,PctTip)~=0
+
+
+```{r setup, include=TRUE}
+ knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(gtools)
+library(combinat)
+library(Rfast)
+```
+```{r}
+load("C:/Users/utente/Desktop/Intelligent Data Analysis/RestaurantTips.Rdata")
+```
+####Exploring the data's distribution
+
+```{r}
+Rest<-RestaurantTips
+hist(Rest$PctTip,breaks = 30)
+hist(Rest$Bill,breaks = 30)
+```
+
+
+Compute the Pearson correlation coefficient
+```{r}
+co=cor(Rest$Bill,Rest$PctTip,method='pearson')
+co
+```
+
+Look at the scatterplot Bill vs. PctTip
+```{r}
+ggplot(data=Rest,aes(x=Rest$PctTip,y=Rest$Bill)) +
+  geom_point()+
+  xlab('PctTip')+
+  ylab('Bill')
+```
+
+Can not see a lot.
+
+
+
+###R Pre-implemented permutation test
+
+```{r}
+#I set a seed because of randomness of the test
+#set.seed(7)
+nreps=10000
+permcor(Rest$Bill,Rest$PctTip,R=nreps)
+```
+
+###Permutation test
+
+```{r}
+r.obt=co
+y_matrix <- matrix(Rest$PctTip, nrow=nreps, ncol=length(Rest$PctTip),byrow=TRUE)
+# need to transpose the matrix after calling the 'apply' function
+# wondering why it change the matrix shape
+y_matrix_shuffled <- t(apply(y_matrix, MARGIN=1, FUN=function(x) permute(x))) 
+corr_vector <- apply(y_matrix_shuffled, MARGIN=1, FUN = function(x) cor(x, Rest$Bill))
+
+prob <- length(corr_vector[abs(corr_vector) >= abs(r.obt)])/nreps
+
+cat("P-value of the permutation test ",prob)
+
+
+```
+
+The p-value is quite high, so i will accept H0 as true, so the two variables ar uncorrelated.
+
+Histogram of the distribution of r among the simulations, the red line stays for the Pearson correlation coefficient
+```{r}
+hist(corr_vector, breaks = 50, main =  expression(paste("Distribution around ",rho, "= 0")), xlab = "r from randomized samples")
+a=c(co,co)
+b=c(co,1000)
+lines(a,b,col='red')
+
+```
+
+
+##Now i repeat the analysis whitout the outliers (percentage tip>30%)
+```{r}
+Rest<-Rest[Rest$PctTip<30,]
+```
+
+####Exploring the data's distribution
+
+```{r}
+hist(Rest$PctTip,breaks = 30)
+hist(Rest$Bill,breaks = 30)
+```
+
+
+Compute the Pearson correlation coefficient
+```{r}
+co=cor(Rest$Bill,Rest$PctTip,method='pearson')
+co
+```
+
+Look at the scatterplot Bill vs. PctTip
+```{r}
+ggplot(data=Rest,aes(x=Rest$PctTip,y=Rest$Bill)) +
+  geom_point()+
+  xlab('PctTip')+
+  ylab('Bill')
+```
+
+Can see a weak correlation.
+
+
+
+###R Pre-implemented permutation test
+
+```{r}
+#I set a seed because of randomness of the test
+#set.seed(7)
+nreps=10000
+permcor(Rest$Bill,Rest$PctTip,R=nreps)
+```
+
+###Permutation test
+
+```{r}
+r.obt=co
+y_matrix <- matrix(Rest$PctTip, nrow=nreps, ncol=length(Rest$PctTip),byrow=TRUE)
+# need to transpose the matrix after calling the 'apply' function
+# wondering why it change the matrix shape
+y_matrix_shuffled <- t(apply(y_matrix, MARGIN=1, FUN=function(x) permute(x))) 
+corr_vector <- apply(y_matrix_shuffled, MARGIN=1, FUN = function(x) cor(x, Rest$Bill))
+
+prob <- length(corr_vector[abs(corr_vector) >= abs(r.obt)])/nreps
+
+cat("P-value of the permutation test ",prob)
+
+
+```
+
+Since the p-value is very low, we have statistical evidence that the two variables ar correlated.
+
+Histogram of the distribution of r among the simulations, the red line stays for the Pearson correlation coefficient
+```{r}
+hist(corr_vector, breaks = 50, main =  expression(paste("Distribution around ",rho, "= 0")), xlab = "r from randomized samples")
+a=c(co,co)
+b=c(co,1000)
+lines(a,b,col='red')
+
+```
+
