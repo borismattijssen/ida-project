@@ -1,0 +1,91 @@
+---
+title: "Homework 1.2"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Introduction
+
+## Descriptive analysis
+
+*Introduction into section 1.2.1*
+
+```{r}
+library(moments)
+cars = read.delim("cars.txt", sep = "", dec = ".")
+```
+
+### Distribution of miles per gallon (mpg)
+
+We are going to explore the `mpg` variable. To get a sense of how this data looks we will plot it in a histogram. Then, we will use the following descriptive statistics to describe the data: mean, standard deviation, skewness, and kurtosis.
+
+```{r}
+hist(cars$mpg)
+mean(cars$mpg)
+sd(cars$mpg)
+skewness(cars$mpg)
+kurtosis(cars$mpg)
+```
+
+The histogram shows that the data is not distributed normally. This is confirmed by the descriptive statistics. The data is fairly right-tailed since the skewness is positive and far from zero (0.6609693). Furthermore, the kurtosis is 2.523248, which means the data is platykurtic (i.e. more compact than a normal distribution). 
+
+To see if there are any outliers, we use the `boxplot` function. It tells us that there are no outliers:
+```{r}
+boxplot(cars$mpg,plot=FALSE)$out
+```
+
+To improve the normality of the data we can apply a logistic transformation. The histogram and statistics now look as follows.
+
+```{r}
+log_mpg = log(cars$mpg)
+hist(log_mpg)
+mean(log_mpg)
+sd(log_mpg)
+skewness(log_mpg)
+kurtosis(log_mpg)
+```
+
+The histogram looks more normally distributed, but it is hard to determine if it is truly normally distributed. Therefore, we turn to the descriptive statistics. We can see that indeed the skewness of the data has been improved, since it is closer to zero (0.1558033). This implies that the data is more normally distributed. We must however also note that the excess kurtosis is further from zero, which implies a more compact dataset (i.e. less normal). To be sure if the data is normally distributed now, we would have to resort to a statistical test like Lilliefors' test.
+
+Again, using the `boxplot` function we note that there are no outliers.
+
+```{r}
+boxplot(log_mpg, plot=FALSE)$out
+```
+
+### Bivariate distribution of car weight and acceleration
+
+Now we are going to describe the bivariate distribution of car weight and car accelartion. Let us start by showing the mean vector, covariance matrix, and a scatterplot of the data. 
+
+```{r}
+bivar = cbind(cars$weight, cars$acceleration)
+colMeans(bivar)
+cov(bivar)
+plot(bivar)
+```
+
+By visual inspection it looks like the data is not normally distributed. To further test this intuition we will resort to `MVN` package for a variaty of multivariate normality test: *mardia*, *hz*, and *royston*.
+
+```{r}
+library(MVN)
+mvn(data = bivar, mvnTest="mardia")
+mvn(bivar, mvnTest="hz")
+mvn(bivar, mvnTest="royston")
+```
+
+Both Henze-Zirkler’s MVN test and Royston’s MVN test tell use that the data is not normally distributed, whereas Mardia’s MVN test suggests the opposite. It could therefore be informative to look at the Q-Q plot.
+
+```{r}
+invisible(mvn(data = bivar, mvnTest="mardia", multivariatePlot="qq"))
+```
+
+In the Q-Q plot we see that the residuals start to diverge from the straight line, which also suggest that the data is *not* normally distributed. Combining all the evidence, it seems most likely that the data is not normally distributed.
+
+Lastly, we check if there are any outliers in the bivariate data. For this we use the `multivariateOutlierMethod = "quan"` argument to the `mvn` function. It will select all points with a Mahalanobis distance larger than the 97.5% quantile of the chi-square distribution as an outlier.
+
+```{r}
+invisible(mvn(data = as.data.frame(bivar), mvnTest = "hz", multivariateOutlierMethod = "quan"))
+```
+
+From the plot we see that there are six outliers in the bivariate dataset.
