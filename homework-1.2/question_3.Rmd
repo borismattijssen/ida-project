@@ -1,0 +1,97 @@
+---
+title: "ida_hmw_1.2.3"
+author: "Mehdi"
+date: "19 octobre 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Goal
+
+Choosing a subset of 4 or 5 quantitative variables and explore linear relationships.
+
+```{r}
+library(moments)
+library(corrplot)
+cars = read.delim("/home/mehdi/Bureau/ida_hmw_1.2/cars.txt", sep = "", dec = ".")
+```
+
+For this part, we decided to choose 5 qualitative variables : mpg, displacement, horsepower, weight and acceleration
+We created a new data set with only these 5 qualitative variables : carsquali
+
+```{r}
+carsquali=as.data.frame(cars[,3:6], title=TRUE)
+carsquali$mpg <- cars$mpg
+```
+
+###Covariance and Correlation matrix
+
+```{r}
+cov(carsquali)
+r=cor(carsquali)
+r
+```
+We just displayed below the R-matrix. We can visualize it with a plot showing the correlation between the variables in a more intuitive way :
+```{r}
+corrplot(r, method = "circle")
+```
+
+Which variables are correlated the most ?
+
+```{r}
+diag(r)=0
+which(r==max(abs(r)), arr.ind=TRUE)
+```
+The more correlated variables are weight and displacement which is logical because physically, displacement is strongly related to the car's weight.
+Indeed, the correlation between these two variable is : 0.9128930 which is very high. We have a very strong linear relationship which implies that variables are measuring almost the same
+thing. However, in absolute value, the correlation between all these variables apart between acceleration and weight (0.4985387) and between acceleration and mpg (0.4747480) are high. We have a strong relationship implying that we can be confident that these two variables are
+connected in some way.
+
+###Partial correlations
+
+Let's explore the relationship between our 5 variables through partial correlations :
+
+```{r}
+library(ppcor)
+pcor(carsquali)
+matrix.partial=pcor(carsquali)$estimate
+```
+
+Visualizing partial correlations
+
+```{r}
+library(corrgram)
+library(corrplot)
+corrgram(matrix.partial,
+         lower.panel=panel.shade, upper.panel=panel.pie,
+         diag.panel=panel.minmax, text.panel=panel.txt)
+
+corrplot.mixed(matrix.partial,order="AOE" )
+```
+
+Displaying the plots, we can see that partial correlations are closer to zero than ordinary correlations. In this case, this is suggesting that the relationship
+between the variables of interest could be explained by their common relationships to the
+explanatory variables upon which we are conditioning.
+
+###Coefficient of determination
+
+Define a function r2multv for squared multiple correlation coeficients
+
+```{r}
+r2multv<-function(x){
+  r2s=1-1/(diag(solve(cov(x)))*diag(cov(x)))
+  r2s
+}
+```
+
+use it on data set "carsquali"
+
+```{r}
+r2multv(carsquali)
+```
+
+
+## R Markdown
