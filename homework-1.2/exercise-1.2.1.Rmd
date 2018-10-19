@@ -13,12 +13,17 @@ output:
 
 ```{r}
 library(moments)
+library(stats)
 cars = read.delim("cars.txt", sep = "", dec = ".")
 ```
 
 ### Distribution of miles per gallon (mpg)
 
-We are going to explore the `mpg` variable. To get a sense of how this data looks we will plot it in a histogram. Then, we will use the following descriptive statistics to describe the data: mean, standard deviation, skewness, and kurtosis.
+We are going to explore the `mpg` variable. 
+
+#### Asserting normality
+
+To get a sense of how this data looks we will plot it in a histogram. Then, we will use the following descriptive statistics to describe the data: mean, standard deviation, skewness, and kurtosis.
 
 ```{r}
 hist(cars$mpg)
@@ -28,12 +33,21 @@ skewness(cars$mpg)
 kurtosis(cars$mpg)
 ```
 
-The histogram shows that the data is not distributed normally. This is confirmed by the descriptive statistics. The data is fairly right-tailed since the skewness is positive and far from zero (0.6609693). Furthermore, the kurtosis is 2.523248, which means the data is platykurtic (i.e. more compact than a normal distribution). 
+The histogram shows that the data is not distributed normally. This is further supported by the descriptive statistics. The data is fairly right-tailed since the skewness is positive and far from zero (0.6609693). Furthermore, the kurtosis is 2.523248, which means the data is platykurtic (i.e. more compact than a normal distribution). 
+
+A more rigid approach to assert normality is to use a statistical test. In this case we choose Shapiro-Wilk's test, because the sample size is not very large (i.e. 99 samples). 
+```{r}
+shapiro.test(cars$mpg)
+```
+
+Since the p-value is very low (0.0001), we reject the null-hypothesis and conclude that the data is indeed not normally distributed.
 
 To see if there are any outliers, we use the `boxplot` function. It tells us that there are no outliers:
 ```{r}
 boxplot(cars$mpg,plot=FALSE)$out
 ```
+
+#### Improving normality
 
 To improve the normality of the data we can apply a logistic transformation. The histogram and statistics now look as follows.
 
@@ -46,7 +60,13 @@ skewness(log_mpg)
 kurtosis(log_mpg)
 ```
 
-The histogram looks more normally distributed, but it is hard to determine if it is truly normally distributed. Therefore, we turn to the descriptive statistics. We can see that indeed the skewness of the data has been improved, since it is closer to zero (0.1558033). This implies that the data is more normally distributed. We must however also note that the excess kurtosis is further from zero, which implies a more compact dataset (i.e. less normal). To be sure if the data is normally distributed now, we would have to resort to a statistical test like Lilliefors' test.
+The histogram looks more normally distributed, but it is hard to determine if it is truly normally distributed. Therefore, we turn to the descriptive statistics. We can see that indeed the skewness of the data has been improved, since it is closer to zero (0.1558033). This implies that the data is more normally distributed. We must however also note that the excess kurtosis is further from zero, which implies a more compact dataset (i.e. less normal). Again, we use Shapiro-Wilk's test to test for normality. 
+
+```{r}
+shapiro.test(log_mpg)
+```
+
+We now observe a higher p-value, but we still reject the null-hypothesis because the p-value is lower than 0.05. 
 
 Again, using the `boxplot` function we note that there are no outliers.
 
@@ -69,7 +89,7 @@ By visual inspection it looks like the data is not normally distributed. To furt
 
 ```{r}
 library(MVN)
-mvn(data = bivar, mvnTest="mardia")
+mvn(bivar, mvnTest="mardia")
 mvn(bivar, mvnTest="hz")
 mvn(bivar, mvnTest="royston")
 ```
@@ -82,6 +102,16 @@ invisible(mvn(data = bivar, mvnTest="mardia", multivariatePlot="qq"))
 
 In the Q-Q plot we see that the residuals start to diverge from the straight line, which also suggest that the data is *not* normally distributed. Combining all the evidence, it seems most likely that the data is not normally distributed.
 
+In an attempt to improve normality by using a box-cox transformation we observe no improvements:
+```{r}
+library(car)
+summary(powerTransform(bivar~1))
+bivar_cb = bcPower(bivar, c(0.4528,0.514))
+mvn(bivar_cb, mvnTest="mardia")
+mvn(bivar_cb, mvnTest="hz")
+mvn(bivar_cb, mvnTest="royston")
+```
+
 Lastly, we check if there are any outliers in the bivariate data. For this we use the `multivariateOutlierMethod = "quan"` argument to the `mvn` function. It will select all points with a Mahalanobis distance larger than the 97.5% quantile of the chi-square distribution as an outlier.
 
 ```{r}
@@ -89,3 +119,36 @@ invisible(mvn(data = as.data.frame(bivar), mvnTest = "hz", multivariateOutlierMe
 ```
 
 From the plot we see that there are six outliers in the bivariate dataset.
+
+### Linear relationships
+
+In this section we will explore the linear relationships for a subset of the data. In particular, we consider the following variables: mpg, displacement, horsepower, weight, and acceleration.
+
+```{r}
+cars_sub = cars[,c('mpg', 'displacement', 'horsepower', 'weight', 'acceleration')]
+```
+
+#### The determinant of R
+
+The determinant of the correlation matrix R can be used to explain linear dependence in a dataset. More specifically, we use the effective dependence coefficient.
+
+```{r}
+edc<-function(x){
+  p = length(x)
+  e = 1-det(cor(x))^{1/(p-1)}
+  e
+}
+edc(cars_sub)
+```
+
+From this calculation we see that linear dependencies explain 80% of the variability of the data. 
+
+#### Eigen analysis of R
+
+We perform an eigen analyis of the correlcation matrix with the `eigen` function.
+
+```{r}
+eigen(cor(cars_sub))$values
+```
+
+As can be seen, most of the variability is explained by the first principle component (PC). The third, fourth, and fifth PC explain very little of the variability of the dataset. 
