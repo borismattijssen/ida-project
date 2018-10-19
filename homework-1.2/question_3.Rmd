@@ -93,5 +93,7 @@ use it on data set "carsquali"
 r2multv(carsquali)
 ```
 
+The coefficient of determination of displacement, horsepower, weight and mpg "explained" by the correlation with the other variables are higher than 80%. This means that more than 80% of the variance of these variables is explained by the correlation: the correlation is good. In other words an R2 of more than 0.80 means that 80 percent of the variance in these variables is predictable from the others.
+Concerning the coefficient of determination of acceleration, we have a 0.67 which is not good enough, the data is some scattered.
 
 ## R Markdown
