@@ -26,7 +26,7 @@ We are going to explore the `mpg` variable.
 To get a sense of how this data looks we will plot it in a histogram. Then, we will use the following descriptive statistics to describe the data: mean, standard deviation, skewness, and kurtosis.
 
 ```{r}
-hist(cars$mpg)
+hist(cars$mpg, breaks=15)
 mean(cars$mpg)
 sd(cars$mpg)
 skewness(cars$mpg)
@@ -53,7 +53,7 @@ To improve the normality of the data we can apply a logistic transformation. The
 
 ```{r}
 log_mpg = log(cars$mpg)
-hist(log_mpg)
+hist(log_mpg, breaks=15)
 mean(log_mpg)
 sd(log_mpg)
 skewness(log_mpg)
@@ -85,7 +85,7 @@ cov(bivar)
 plot(bivar)
 ```
 
-By visual inspection it looks like the data is not normally distributed. To further test this intuition we will resort to `MVN` package for a variaty of multivariate normality test: *mardia*, *hz*, and *royston*.
+By visual inspection it looks like the data is not normally distributed. To further test this intuition we will resort to `MVN` package for a variety of multivariate normality test: *mardia*, *hz*, and *royston*.
 
 ```{r}
 library(MVN)
