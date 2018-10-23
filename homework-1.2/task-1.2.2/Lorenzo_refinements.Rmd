@@ -22,8 +22,8 @@ library(combinat)
 library(Rfast)
 ```
 ```{r results='hide', message=FALSE, warning=FALSE}
-load("~/Documents/UPM/IntelligentDataAnalysis/ida-project/homework-1.2/task-1.2.2/RestaurantTips.rda")
-#load("C:/Users/utente/Desktop/Intelligent Data Analysis/RestaurantTips.Rdata")
+load("RestaurantTips.rda")
+
 ```
 ####Exploring the data's distribution
 
