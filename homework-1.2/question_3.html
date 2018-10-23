@@ -135,19 +135,19 @@ $(document).ready(function () {
 library(corrplot)</code></pre>
 <pre><code>## corrplot 0.84 loaded</code></pre>
 <pre class="r"><code>cars = read.delim(&quot;/home/mehdi/Bureau/ida_hmw_1.2/cars.txt&quot;, sep = &quot;&quot;, dec = &quot;.&quot;)</code></pre>
-<p>For this part, we decided to choose 5 qualitative variables : mpg, displacement, horsepower, weight and acceleration We created a new data set with only these 5 qualitative variables : carsquali</p>
-<pre class="r"><code>carsquali=as.data.frame(cars[,3:6], title=TRUE)
-carsquali$mpg &lt;- cars$mpg</code></pre>
+<p>For this part, we decided to choose 5 quantitative variables : mpg, displacement, horsepower, weight and acceleration We created a new data set with only these 5 quantitative variables : carsquant</p>
+<pre class="r"><code>carsquant=as.data.frame(cars[,3:6], title=TRUE)
+carsquant$mpg &lt;- cars$mpg</code></pre>
 <div id="covariance-and-correlation-matrix" class="section level3">
 <h3>Covariance and Correlation matrix</h3>
-<pre class="r"><code>cov(carsquali)</code></pre>
+<pre class="r"><code>cov(carsquant)</code></pre>
 <pre><code>##              displacement horsepower     weight acceleration          mpg
 ## displacement   14059.2749  4934.5437 104179.994  -255.431803  -652.531463
 ## horsepower      4934.5437  2117.8963  37334.261  -108.582406  -232.848021
 ## weight        104179.9943 37334.2612 926330.561 -1519.561626 -5490.923624
 ## acceleration    -255.4318  -108.5824  -1519.562    10.029351     9.505519
 ## mpg             -652.5315  -232.8480  -5490.924     9.505519    39.971707</code></pre>
-<pre class="r"><code>r=cor(carsquali)
+<pre class="r"><code>r=cor(carsquant)
 r</code></pre>
 <pre><code>##              displacement horsepower     weight acceleration        mpg
 ## displacement    1.0000000  0.9043014  0.9128930   -0.6802321 -0.8704496
@@ -164,14 +164,14 @@ which(r==max(abs(r)), arr.ind=TRUE)</code></pre>
 <pre><code>##              row col
 ## weight         3   1
 ## displacement   1   3</code></pre>
-<p>The more correlated variables are weight and displacement which is logical because physically, displacement is strongly related to the car’s weight. Indeed, the correlation between these two variable is : 0.9128930 which is very high. We have a very strong linear relationship which implies that variables are measuring almost the same thing. However, in absolute value, the correlation between all these variables apart between acceleration and weight (0.4985387) and between acceleration and mpg (0.4747480) are high. We have a strong relationship implying that we can be confident that these two variables are connected in some way.</p>
+<p>The more correlated variables are weight and displacement which is logical because physically, displacement is strongly related to the car’s weight. Indeed, the correlation between these two variables is : 0.9128930 which is very high. We have a very strong linear relationship which implies that variables are measuring almost the same thing. However, in absolute value, the correlation between all these variables apart between acceleration and weight (0.4985387) and between acceleration and mpg (0.4747480) are high. We have a strong relationship implying that we can be confident that these two variables are connected in some way.</p>
 </div>
 <div id="partial-correlations" class="section level3">
 <h3>Partial correlations</h3>
 <p>Let’s explore the relationship between our 5 variables through partial correlations :</p>
 <pre class="r"><code>library(ppcor)</code></pre>
 <pre><code>## Loading required package: MASS</code></pre>
-<pre class="r"><code>pcor(carsquali)</code></pre>
+<pre class="r"><code>pcor(carsquant)</code></pre>
 <pre><code>## $estimate
 ##              displacement  horsepower     weight acceleration         mpg
 ## displacement    1.0000000  0.27382566  0.5160035   -0.3932440 -0.25186293
@@ -210,7 +210,7 @@ which(r==max(abs(r)), arr.ind=TRUE)</code></pre>
 ## 
 ## $method
 ## [1] &quot;pearson&quot;</code></pre>
-<pre class="r"><code>matrix.partial=pcor(carsquali)$estimate</code></pre>
+<pre class="r"><code>matrix.partial=pcor(carsquant)$estimate</code></pre>
 <p>Visualizing partial correlations</p>
 <pre class="r"><code>library(corrgram)
 library(corrplot)
@@ -229,11 +229,11 @@ corrgram(matrix.partial,
   r2s=1-1/(diag(solve(cov(x)))*diag(cov(x)))
   r2s
 }</code></pre>
-<p>use it on data set “carsquali”</p>
-<pre class="r"><code>r2multv(carsquali)</code></pre>
+<p>use it on data set “carsquant”</p>
+<pre class="r"><code>r2multv(carsquant)</code></pre>
 <pre><code>## displacement   horsepower       weight acceleration          mpg 
 ##    0.9159490    0.8662318    0.8984768    0.6745925    0.8320842</code></pre>
-<p>The coefficient of determination of displacement, horsepower, weight and mpg “explained” by the correlation with the other variables are higher than 80%. This means that more than 80% of the variance of these variables is explained by the correlation: the correlation is good. In other words an R2 of more than 0.80 means that 80 percent of the variance in these variables is predictable from the others. Concerning the coefficient of determination of acceleration, we have a 0.67 which is not good enough, the data is some scattered.</p>
+<p>The coefficient of determination of displacement, horsepower, weight and mpg “explained” by the correlation with the other variables are higher than 80%. This means that more than 80% of the variance of these variables is explained by the correlation. In other words an R2 of more than 0.80 means that 80 percent of the variance in these variables is predictable from the others. Concerning the coefficient of determination of acceleration, we have a 0.67, the data is some scattered.</p>
 </div>
 </div>
 <div id="r-markdown" class="section level2">
