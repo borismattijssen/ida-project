@@ -1,5 +1,5 @@
 ---
-title: "Permutation test"
+title: "task 1.2.2"
 output: html_document
 ---
 # Permutation test
@@ -15,13 +15,13 @@ H1: cov(Bill,PctTip)~=0
  knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r results='hide', message=FALSE, warning=FALSE}
 library(ggplot2)
 library(gtools)
 library(combinat)
 library(Rfast)
 ```
-```{r}
+```{r results='hide', message=FALSE, warning=FALSE}
 load("~/Documents/UPM/IntelligentDataAnalysis/ida-project/homework-1.2/task-1.2.2/RestaurantTips.rda")
 #load("C:/Users/utente/Desktop/Intelligent Data Analysis/RestaurantTips.Rdata")
 ```
