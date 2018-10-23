@@ -72,24 +72,35 @@ boxplot(cars$mpg,plot=FALSE)$out
 
 #### Improving normality
 
-To improve the normality of the data we can apply a logarithmic transformation. The histogram and statistics now look as follows.
+To improve the normality we use a Box-Cox transformation.
 
+First, we find the power coefficients.
 ```{r}
-cars$log_mpg = log(cars$mpg)
-ggplot(cars, aes(x=cars$log_mpg)) +
-  geom_histogram(fill='#E69F00', color="black", bins = 15) +
-  xlab("log(Miles per Gallon)") +
-  ggtitle("histogram of log(mpg)", subtitle = NULL)
-mean(cars$log_mpg)
-sd(cars$log_mpg)
-skewness(cars$log_mpg)
-kurtosis(cars$log_mpg)
+summary(powerTransform(cars$mpg))
 ```
 
-The histogram looks more normally distributed, but it is hard to determine if it is truly normally distributed. Therefore, we turn to the descriptive statistics. We can see that indeed the skewness of the data has been improved, since it is closer to zero (0.1558033). This implies that the data is more normally distributed. We must however also note that the excess kurtosis is further from zero, which implies a more compact dataset (i.e. less normal). Again, we use Shapiro-Wilk's test to test for normality. 
+Then, we apply the Box-Cox power transform with $\lambda=-0.245$.
+```{r}
+cars$mpg_bc = bcPower(cars$mpg, -0.245)
+```
+
+The histogram and statistics now look as follows.
 
 ```{r}
-shapiro.test(cars$log_mpg)
+ggplot(cars, aes(x=cars$mpg_bc)) +
+  geom_histogram(fill='#E69F00', color="black", bins = 15) +
+  xlab("bcPower(Miles per Gallon, -0.245)") +
+  ggtitle("histogram of bcPower(mpg, -0.245)", subtitle = NULL)
+mean(cars$mpg_bc)
+sd(cars$mpg_bc)
+skewness(cars$mpg_bc)
+kurtosis(cars$mpg_bc)
+```
+
+The histogram looks only a bit more normally distributed. Also the descriptive statistics, do not imply much normality. We can see that the skewness of the data has been improved, since it is closer to zero (0.1558033). This implies that the data is more normally distributed. We must however also note that the excess kurtosis is further from zero, which implies a more compact dataset (i.e. less normal). Again, we use Shapiro-Wilk's test to test for normality. 
+
+```{r}
+shapiro.test(cars$mpg_bc)
 ```
 
 We now observe a higher p-value, but we still reject the null-hypothesis because the p-value is lower than 0.05. 
@@ -97,7 +108,7 @@ We now observe a higher p-value, but we still reject the null-hypothesis because
 Again, using the `boxplot` function we note that there are no outliers.
 
 ```{r}
-boxplot(cars$log_mpg, plot=FALSE)$out
+boxplot(cars$mpg_bc, plot=FALSE)$out
 ```
 
 ### Bivariate distribution of car weight and acceleration
