@@ -1,5 +1,6 @@
 ---
 title: "Homework 1.2"
+author: Ettore Puccetti, Lorenzo Foà, Mehdi El Idrissi, Boris Mattijssen
 output:
   html_document:
     df_print: paged
@@ -7,7 +8,9 @@ output:
 
 ## Introduction
 
-*Introduction to the assignment*
+For homewrok 1.2.1 we chose the cars (Cars) dataset which contains informations about cars commercialized between year 1970 and 1977. At the beginning (a) we will explore the distribution of the variable miles per gallon (mpg) in terms of descriptive measures of center, dispersion, skewness and kurtosis, then we will check the normality and, if this condition is absent, we will try to improve data's normality by applying some transformations. After this we will describe (b) the joint bivariate distribution of the variables car weight and car accelartion. We will again check the normality and look for outliers. Lastly we will pick (c) a subset of 4 or 5 quantitative variables for exploring the linear relationships through the following methods:R matrix of pairwise correlations, matrix of partial correlations, coefficient of determination, the determinant of the correlation matrix R and an eigenanalysis of matrix R.
+
+In homework 1.2.2 we used the Restaurant Tips dataset, where are stored informations about the restaurant bills. The purpose of the analysis is to see if there is evidence of a  consistent relationship between the size of the bill and the percent tip.
 
 ## Descriptive analysis
 
