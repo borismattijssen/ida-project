@@ -12,6 +12,8 @@ For homewrok 1.2.1 we chose the cars (Cars) dataset which contains informations 
 
 In homework 1.2.2 we used the Restaurant Tips dataset, where are stored informations about the restaurant bills. The purpose of the analysis is to see if there is evidence of a  consistent relationship between the size of the bill and the percent tip.
 
+#1.2.1
+
 ## Descriptive analysis
 
 In this section we will perform a descriptive analysis of the cars dataset. The dataset contains information about different car models such as, miles per gallon, number of cylinders, horsepower, etc. 
@@ -255,7 +257,9 @@ eigen(cor(cars_sub))$values
 
 As can be seen, most of the variability is explained by the first principle component (PC). The third, fourth, and fifth PC explain very little of the variability of the dataset. 
 
-# Permutation test
+#1.2.2
+
+## Permutation test
 The goal of this analysis is to investigate correlation between the variables Bill and Tip expressed as a percentage on the bill.
 
 We are going to perform the permutation test on the hypothesis 
