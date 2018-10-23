@@ -20,18 +20,18 @@ cars = read.delim("/home/mehdi/Bureau/ida_hmw_1.2/cars.txt", sep = "", dec = "."
 ```
 
 For this part, we decided to choose 5 quantitative variables : mpg, displacement, horsepower, weight and acceleration
-We created a new data set with only these 5 quantitative variables : carsquali
+We created a new data set with only these 5 quantitative variables : carsquant
 
 ```{r}
-carsquali=as.data.frame(cars[,3:6], title=TRUE)
-carsquali$mpg <- cars$mpg
+carsquant=as.data.frame(cars[,3:6], title=TRUE)
+carsquant$mpg <- cars$mpg
 ```
 
 ###Covariance and Correlation matrix
 
 ```{r}
-cov(carsquali)
-r=cor(carsquali)
+cov(carsquant)
+r=cor(carsquant)
 r
 ```
 We just displayed below the R-matrix. We can visualize it with a plot showing the correlation between the variables in a more intuitive way :
@@ -56,8 +56,8 @@ Let's explore the relationship between our 5 variables through partial correlati
 
 ```{r}
 library(ppcor)
-pcor(carsquali)
-matrix.partial=pcor(carsquali)$estimate
+pcor(carsquant)
+matrix.partial=pcor(carsquant)$estimate
 ```
 
 Visualizing partial correlations
@@ -87,13 +87,13 @@ r2multv<-function(x){
 }
 ```
 
-use it on data set "carsquali"
+use it on data set "carsquant"
 
 ```{r}
-r2multv(carsquali)
+r2multv(carsquant)
 ```
 
-The coefficient of determination of displacement, horsepower, weight and mpg "explained" by the correlation with the other variables are higher than 80%. This means that more than 80% of the variance of these variables is explained by the correlation: the correlation is good. In other words an R2 of more than 0.80 means that 80 percent of the variance in these variables is predictable from the others.
-Concerning the coefficient of determination of acceleration, we have a 0.67 which is not good enough, the data is some scattered.
+The coefficient of determination of displacement, horsepower, weight and mpg "explained" by the correlation with the other variables are higher than 80%. This means that more than 80% of the variance of these variables is explained by the correlation. In other words an R2 of more than 0.80 means that 80 percent of the variance in these variables is predictable from the others.
+Concerning the coefficient of determination of acceleration, we have a 0.67, the data is some scattered.
 
 ## R Markdown
