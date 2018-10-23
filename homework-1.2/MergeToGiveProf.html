@@ -1,0 +1,418 @@
+---
+title: "Homework 1.2"
+author: Ettore Puccetti, Lorenzo Foà, Mehdi El Idrissi, Boris Mattijssen
+output:
+  html_document:
+    df_print: paged
+---
+
+## Introduction
+
+For homewrok 1.2.1 we chose the cars (Cars) dataset which contains informations about cars commercialized between year 1970 and 1977. At the beginning (a) we will explore the distribution of the variable miles per gallon (mpg) in terms of descriptive measures of center, dispersion, skewness and kurtosis, then we will check the normality and, if this condition is absent, we will try to improve data's normality by applying some transformations. After this we will describe (b) the joint bivariate distribution of the variables car weight and car accelartion. We will again check the normality and look for outliers. Lastly we will pick (c) a subset of 4 or 5 quantitative variables for exploring the linear relationships through the following methods:R matrix of pairwise correlations, matrix of partial correlations, coefficient of determination, the determinant of the correlation matrix R and an eigenanalysis of matrix R.
+
+In homework 1.2.2 we used the Restaurant Tips dataset, where are stored informations about the restaurant bills. The purpose of the analysis is to see if there is evidence of a  consistent relationship between the size of the bill and the percent tip.
+
+#1.2.1
+
+## Descriptive analysis
+
+In this section we will perform a descriptive analysis of the cars dataset. The dataset contains information about different car models such as, miles per gallon, number of cylinders, horsepower, etc. 
+
+The section is structured as follows. Firstly, we perform a univariate analysis on the `mpg` variable. Then, a bivariate analysis is performed on the combined variable (`weight`,`acceleration`). Lastly, we have a look at the interaction between a subset of five variables in the dataset. 
+
+```{r, warning=FALSE,message=FALSE}
+library(ggplot2)
+library(moments)
+library(stats)
+library(corrplot)
+library(MVN)
+library(car)
+library(ppcor)
+library(corrgram)
+library(corrplot)
+```
+
+```{r}
+cars = read.delim("cars.txt", sep = "", dec = ".")
+head(cars)
+```
+
+### Distribution of miles per gallon (mpg)
+
+We are going to explore the `mpg` variable. 
+
+#### Asserting normality
+
+To get a sense of how this data looks we will plot it in a histogram. Then, we will use the following descriptive statistics to describe the data: mean, standard deviation, skewness, and kurtosis.
+
+```{r}
+ggplot(cars, aes(x=cars$mpg)) +
+  geom_histogram(fill='#00BFC4', color="black", bins = 15) +
+  xlab("Miles per Gallon") +
+  ggtitle("histogram of mpg", subtitle = NULL)
+mean(cars$mpg)
+sd(cars$mpg)
+skewness(cars$mpg)
+kurtosis(cars$mpg)
+```
+
+The histogram shows that the data is not distributed normally. This is further supported by the descriptive statistics. The data is fairly right-tailed since the skewness is positive and far from zero (0.6609693). Furthermore, the kurtosis is 2.523248, which means the data is platykurtic (i.e. more compact than a normal distribution). 
+
+A more rigid approach to assert normality is to use a statistical test. In this case we choose Shapiro-Wilk's test, because the sample size is not very large (i.e. 99 samples). 
+```{r}
+shapiro.test(cars$mpg)
+```
+
+Since the p-value is very low (0.0001), we reject the null-hypothesis and conclude that the data is indeed not normally distributed.
+
+To see if there are any outliers, we use the `boxplot` function. It tells us that there are no outliers:
+```{r}
+boxplot(cars$mpg,plot=FALSE)$out
+```
+
+#### Improving normality
+
+To improve the normality of the data we can apply a logarithmic transformation. The histogram and statistics now look as follows.
+
+```{r}
+cars$log_mpg = log(cars$mpg)
+ggplot(cars, aes(x=cars$log_mpg)) +
+  geom_histogram(fill='#E69F00', color="black", bins = 15) +
+  xlab("log(Miles per Gallon)") +
+  ggtitle("histogram of log(mpg)", subtitle = NULL)
+mean(cars$log_mpg)
+sd(cars$log_mpg)
+skewness(cars$log_mpg)
+kurtosis(cars$log_mpg)
+```
+
+The histogram looks more normally distributed, but it is hard to determine if it is truly normally distributed. Therefore, we turn to the descriptive statistics. We can see that indeed the skewness of the data has been improved, since it is closer to zero (0.1558033). This implies that the data is more normally distributed. We must however also note that the excess kurtosis is further from zero, which implies a more compact dataset (i.e. less normal). Again, we use Shapiro-Wilk's test to test for normality. 
+
+```{r}
+shapiro.test(cars$log_mpg)
+```
+
+We now observe a higher p-value, but we still reject the null-hypothesis because the p-value is lower than 0.05. 
+
+Again, using the `boxplot` function we note that there are no outliers.
+
+```{r}
+boxplot(cars$log_mpg, plot=FALSE)$out
+```
+
+### Bivariate distribution of car weight and acceleration
+
+Now we are going to describe the bivariate distribution of car weight and car accelartion. Let us start by showing the mean vector, covariance matrix, and a scatterplot of the data. 
+
+```{r}
+bivar = cbind(cars$weight, cars$acceleration)
+colMeans(bivar)
+cov(bivar)
+ggplot(data=as.data.frame(bivar),aes(x=bivar[,1],y=bivar[,2])) +
+  geom_point(color = "#F8766D")+
+  xlab('Weight')+
+  ylab('Acceleration') +
+  ggtitle("Scatterplot of Weight vs Acceleration", subtitle = NULL)
+```
+
+By visual inspection it looks like the data is not normally distributed. To further test this intuition we will resort to `MVN` package for a variety of multivariate normality test: *mardia*, *hz*, and *royston*.
+
+```{r}
+mvn(bivar, mvnTest="mardia")$multivariateNormality
+mvn(bivar, mvnTest="hz")$multivariateNormality
+mvn(bivar, mvnTest="royston")$multivariateNormality
+```
+
+Both Henze-Zirkler’s MVN test and Royston’s MVN test tell use that the data is not normally distributed, whereas Mardia’s MVN test suggests the opposite. It could therefore be informative to look at the Q-Q plot.
+
+```{r}
+invisible(mvn(data = bivar, mvnTest="mardia", multivariatePlot="qq"))
+```
+
+In the Q-Q plot we see that the residuals start to diverge from the straight line, which also suggest that the data is *not* normally distributed. Combining all the evidence, it seems most likely that the data is not normally distributed.
+
+In an attempt to improve normality by using a Box-Cox transformation we observe no improvements. This is shown by the following code.
+
+Firstly, we find the power coefficients.
+```{r}
+summary(powerTransform(bivar~1))
+```
+
+Secondly, we apply the Box-Cox power transform with ($\lambda_1=0.4528$, $\lambda_2=0.514 $).
+```{r}
+bivar_cb = bcPower(bivar, c(0.4528,0.514))
+```
+
+Lastly, we apply the MVN tests on the transformed variable.
+```{r}
+mvn(bivar_cb, mvnTest="mardia")$multivariateNormality
+mvn(bivar_cb, mvnTest="hz")$multivariateNormality
+mvn(bivar_cb, mvnTest="royston")$multivariateNormality
+```
+
+Lastly, we check if there are any outliers in the bivariate data. For this we use the `multivariateOutlierMethod = "quan"` argument to the `mvn` function. It will select all points with a Mahalanobis distance larger than the 97.5% quantile of the chi-square distribution as an outlier.
+
+```{r}
+invisible(mvn(data = as.data.frame(bivar), mvnTest = "hz", multivariateOutlierMethod = "quan"))
+```
+
+From the plot we see that there are six outliers in the bivariate dataset.
+
+### Linear relationships
+
+In this section we will explore the linear relationships for a subset of the data. In particular, we consider the following variables: mpg, displacement, horsepower, weight, and acceleration.
+
+```{r}
+cars_sub = cars[,c('mpg', 'displacement', 'horsepower', 'weight', 'acceleration')]
+```
+
+
+#### Covariance and Correlation matrix
+
+```{r}
+cov(cars_sub)
+r=cor(cars_sub)
+r
+```
+
+We just displayed below the R-matrix. We can visualize it with a plot showing the correlation between the variables in a more intuitive way :
+```{r}
+corrplot(r, method = "circle")
+```
+
+Which variables are correlated the most ?
+
+```{r}
+diag(r)=0
+which(r==max(abs(r)), arr.ind=TRUE)
+```
+
+The most correlated variables are weight and displacement which is logical because physically, displacement is strongly related to the car's weight.
+Indeed, the correlation between these two variables is: 0.9128930 which is very high. We have a very strong linear relationship which implies that variables are measuring almost the same thing. Furthermore, almost all absolute correlations are high, apart from the acceleration-weight (0.4985387) and the acceleration-mpg (0.4747480) correlation.
+
+#### Partial correlations
+
+Let's explore the relationship between our 5 variables through partial correlations :
+
+```{r}
+pcor(cars_sub)
+matrix.partial=pcor(cars_sub)$estimate
+```
+
+Visualizing partial correlations
+
+```{r}
+corrgram(matrix.partial,
+         lower.panel=panel.shade, upper.panel=panel.pie,
+         diag.panel=panel.minmax, text.panel=panel.txt)
+corrplot.mixed(matrix.partial,order="AOE" )
+```
+
+Displaying the plots, we can see that partial correlations are closer to zero than ordinary correlations. In this case, this is suggesting that the relationship
+between the variables of interest could be explained by their common relationships to the
+explanatory variables upon which we are conditioning.
+
+#### Coefficient of determination
+
+Define a function r2multv for squared multiple correlation coeficients
+
+```{r}
+r2multv<-function(x){
+  r2s=1-1/(diag(solve(cov(x)))*diag(cov(x)))
+  r2s
+}
+```
+
+use it on data set "cars_sub"
+
+```{r}
+r2multv(cars_sub)
+```
+
+The coefficient of determination of displacement, horsepower, weight and mpg "explained" by the correlation with the other variables are higher than 80%. This means that more than 80% of the variance of these variables is explained by the correlation. In other words an R2 of more than 0.80 means that 80 percent of the variance in these variables is predictable from the others.
+Concerning the coefficient of determination of acceleration, we have a 0.67, the data is some scattered.
+
+#### The determinant of R
+
+The determinant of the correlation matrix R can be used to explain linear dependence in a dataset. More specifically, we use the effective dependence coefficient.
+
+```{r}
+edc<-function(x){
+  p = length(x)
+  e = 1-det(cor(x))^{1/(p-1)}
+  e
+}
+edc(cars_sub)
+```
+
+From this calculation we see that linear dependencies explain 80% of the variability of the data. 
+
+#### Eigen analysis of R
+
+We perform an eigen analyis of the correlcation matrix with the `eigen` function.
+
+```{r}
+eigen(cor(cars_sub))$values
+```
+
+As can be seen, most of the variability is explained by the first principle component (PC). The third, fourth, and fifth PC explain very little of the variability of the dataset. 
+
+#1.2.2
+
+## Permutation test
+The goal of this analysis is to investigate correlation between the variables Bill and Tip expressed as a percentage on the bill.
+
+We are going to perform the permutation test on the hypothesis 
+`H0: cov(Bill,PctTip)==0` 
+                       vs.
+`H1: cov(Bill,PctTip)!=0`
+
+
+```{r setup, include=TRUE}
+ knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r results='hide', message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gtools)
+library(combinat)
+library(Rfast)
+```
+```{r results='hide', message=FALSE, warning=FALSE}
+load("RestaurantTips.rda")
+```
+####Exploring the data's distribution
+
+```{r}
+Rest<-RestaurantTips
+ggplot(RestaurantTips, aes(x=Rest$PctTip)) +
+  geom_histogram(fill='#00BFC4', color="black", bins = 30) +
+  xlab("Percentual of Tip") +
+  ggtitle("histogram of PctTip", subtitle = NULL)
+ggplot(RestaurantTips, aes(x=Rest$Bill)) +
+  geom_histogram(fill='#E69F00', color="black", bins = 30) +
+  xlab("Bill") +
+  ggtitle("histogram of Bill", subtitle = NULL)
+```
+
+
+Compute the Pearson correlation coefficient
+```{r}
+co=cor(Rest$Bill,Rest$PctTip,method='pearson')
+co
+```
+
+Look at the scatterplot Bill vs. PctTip
+```{r}
+ggplot(data=Rest,aes(x=Rest$PctTip,y=Rest$Bill)) +
+  geom_point(color = "#F8766D")+
+  xlab('PctTip')+
+  ylab('Bill') +
+  ggtitle("Scatterplot of Bill vs PctTip", subtitle = NULL)
+```
+
+From here, there's no evidence for confirming or rejecting one of the two hypotesis.
+
+
+
+###R Pre-implemented permutation test
+
+```{r}
+#I set a seed because of randomness of the test
+set.seed(7)
+nreps=10000
+permcor(Rest$Bill,Rest$PctTip,R=nreps)
+```
+
+###Permutation test
+
+```{r}
+r.obt=co
+# in order to avoid the for loop we instantiate a matrix of 10000 x 157,
+y_matrix <- matrix(Rest$PctTip, nrow=nreps, ncol=length(Rest$PctTip),byrow=TRUE)
+# in each row there is a permutation of the variable PctTip.
+y_matrix_shuffled <- t(apply(y_matrix, MARGIN=1, FUN=function(x) permute(x)))
+# then, we compute the array of the 157 correlatioin coefficent, comparing the non-shuffled variable Bill,
+# with each row of the matrix.
+corr_vector <- apply(y_matrix_shuffled, MARGIN=1, FUN = function(x) cor(x, Rest$Bill))
+prob <- length(corr_vector[abs(corr_vector) >= abs(r.obt)])/nreps
+cat("P-value of the permutation test ",prob)
+```
+
+The p-value is quite high, so i will accept H0 as true, so the two variables ar uncorrelated.
+
+Histogram of the distribution of r among the simulations, the red line stays for the Pearson correlation coefficient
+```{r}
+hist(corr_vector, breaks = 50, main =  expression(paste("Distribution around ",rho, "= 0")), xlab = "r from randomized samples")
+a=c(co,co)
+b=c(co,1000)
+lines(a,b,col='red')
+```
+
+## Without outilers
+##### Now i repeat the analysis whitout the outliers (percentage tip>30%)
+```{r}
+Rest<-Rest[Rest$PctTip<30,]
+```
+
+####Exploring the data's distribution
+
+```{r}
+ggplot(Rest, aes(x=Rest$PctTip)) +
+  geom_histogram(fill='#00BFC4', color="black", bins = 30) +
+  xlab("Percentual of Tip") +
+  ggtitle("histogram of PctTip (without outliers) ", subtitle = NULL)
+ggplot(Rest, aes(x=Rest$Bill)) +
+  geom_histogram(fill='#E69F00', color="black", bins = 30) +
+  xlab("Bill") +
+  ggtitle("histogram of Bill (without outliers) ", subtitle = NULL)
+```
+
+
+Compute the Pearson correlation coefficient
+```{r}
+co=cor(Rest$Bill,Rest$PctTip,method='pearson')
+co
+```
+
+Look at the scatterplot Bill vs. PctTip
+```{r}
+ggplot(data=Rest,aes(x=Rest$PctTip,y=Rest$Bill)) +
+  geom_point(color = "#F45903")+
+  xlab('PctTip')+
+  ylab('Bill')
+```
+
+Can see a weak correlation.
+
+
+
+###R Pre-implemented permutation test
+
+```{r}
+#I set a seed because of randomness of the test
+#set.seed(7)
+nreps=10000
+permcor(Rest$Bill,Rest$PctTip,R=nreps)
+```
+
+###Permutation test
+
+```{r}
+r.obt=co
+y_matrix <- matrix(Rest$PctTip, nrow=nreps, ncol=length(Rest$PctTip),byrow=TRUE)
+y_matrix_shuffled <- t(apply(y_matrix, MARGIN=1, FUN=function(x) permute(x))) 
+corr_vector <- apply(y_matrix_shuffled, MARGIN=1, FUN = function(x) cor(x, Rest$Bill))
+prob <- length(corr_vector[abs(corr_vector) >= abs(r.obt)])/nreps
+cat("P-value of the permutation test ",prob)
+```
+
+Since the p-value is very low, we have statistical evidence that the two variables ar correlated.
+
+Histogram of the distribution of r among the simulations, the red line stays for the Pearson correlation coefficient
+```{r}
+hist(corr_vector, breaks = 50, main =  expression(paste("Distribution around ",rho, "= 0")), xlab = "r from randomized samples")
+a=c(co,co)
+b=c(co,1000)
+lines(a,b,col='red')
+```
