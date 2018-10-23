@@ -6,9 +6,9 @@ output: html_document
 The goal of this analysis is to investigate correlation between the variables Bill and Tip expressed as a percentage on the bill.
 
 We are going to perform the permutation test on the hypothesis 
-H0: cov(Bill,PctTip)==0 
+`H0: cov(Bill,PctTip)==0` 
                        vs.
-H1: cov(Bill,PctTip)~=0
+`H1: cov(Bill,PctTip)!=0`
 
 
 ```{r setup, include=TRUE}
@@ -76,12 +76,15 @@ permcor(Rest$Bill,Rest$PctTip,R=nreps)
 
 ```{r}
 r.obt=co
+
 # in order to avoid the for loop we instantiate a matrix of 10000 x 157,
+y_matrix <- matrix(Rest$PctTip, nrow=nreps, ncol=length(Rest$PctTip),byrow=TRUE)
+
 # in each row there is a permutation of the variable PctTip.
+y_matrix_shuffled <- t(apply(y_matrix, MARGIN=1, FUN=function(x) permute(x)))
+
 # then, we compute the array of the 157 correlatioin coefficent, comparing the non-shuffled variable Bill,
 # with each row of the matrix.
-y_matrix <- matrix(Rest$PctTip, nrow=nreps, ncol=length(Rest$PctTip),byrow=TRUE)
-y_matrix_shuffled <- t(apply(y_matrix, MARGIN=1, FUN=function(x) permute(x))) 
 corr_vector <- apply(y_matrix_shuffled, MARGIN=1, FUN = function(x) cor(x, Rest$Bill))
 
 prob <- length(corr_vector[abs(corr_vector) >= abs(r.obt)])/nreps
@@ -101,8 +104,8 @@ lines(a,b,col='red')
 
 ```
 
-
-##Now i repeat the analysis whitout the outliers (percentage tip>30%)
+## Without outilers
+##### Now i repeat the analysis whitout the outliers (percentage tip>30%)
 ```{r}
 Rest<-Rest[Rest$PctTip<30,]
 ```
