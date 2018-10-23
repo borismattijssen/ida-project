@@ -7,14 +7,29 @@ output:
 
 ## Introduction
 
+*Introduction to the assignment*
+
 ## Descriptive analysis
 
-*Introduction into section 1.2.1*
+In this section we will perform a descriptive analysis of the cars dataset. The dataset contains information about different car models such as, miles per gallon, number of cylinders, horsepower, etc. 
 
-```{r}
+The section is structured as follows. Firstly, we perform a univariate analysis on the `mpg` variable. Then, a bivariate analysis is performed on the combined variable (`weight`,`acceleration`). Lastly, we have a look at the interaction between a subset of five variables in the dataset. 
+
+```{r, warning=FALSE,message=FALSE}
+library(ggplot2)
 library(moments)
 library(stats)
+library(corrplot)
+library(MVN)
+library(car)
+library(ppcor)
+library(corrgram)
+library(corrplot)
+```
+
+```{r}
 cars = read.delim("cars.txt", sep = "", dec = ".")
+head(cars)
 ```
 
 ### Distribution of miles per gallon (mpg)
@@ -26,7 +41,10 @@ We are going to explore the `mpg` variable.
 To get a sense of how this data looks we will plot it in a histogram. Then, we will use the following descriptive statistics to describe the data: mean, standard deviation, skewness, and kurtosis.
 
 ```{r}
-hist(cars$mpg, breaks=15)
+ggplot(cars, aes(x=cars$mpg)) +
+  geom_histogram(fill='#00BFC4', color="black", bins = 15) +
+  xlab("Miles per Gallon") +
+  ggtitle("histogram of mpg", subtitle = NULL)
 mean(cars$mpg)
 sd(cars$mpg)
 skewness(cars$mpg)
@@ -49,21 +67,24 @@ boxplot(cars$mpg,plot=FALSE)$out
 
 #### Improving normality
 
-To improve the normality of the data we can apply a logistic transformation. The histogram and statistics now look as follows.
+To improve the normality of the data we can apply a logarithmic transformation. The histogram and statistics now look as follows.
 
 ```{r}
-log_mpg = log(cars$mpg)
-hist(log_mpg, breaks=15)
-mean(log_mpg)
-sd(log_mpg)
-skewness(log_mpg)
-kurtosis(log_mpg)
+cars$log_mpg = log(cars$mpg)
+ggplot(cars, aes(x=cars$log_mpg)) +
+  geom_histogram(fill='#E69F00', color="black", bins = 15) +
+  xlab("log(Miles per Gallon)") +
+  ggtitle("histogram of log(mpg)", subtitle = NULL)
+mean(cars$log_mpg)
+sd(cars$log_mpg)
+skewness(cars$log_mpg)
+kurtosis(cars$log_mpg)
 ```
 
 The histogram looks more normally distributed, but it is hard to determine if it is truly normally distributed. Therefore, we turn to the descriptive statistics. We can see that indeed the skewness of the data has been improved, since it is closer to zero (0.1558033). This implies that the data is more normally distributed. We must however also note that the excess kurtosis is further from zero, which implies a more compact dataset (i.e. less normal). Again, we use Shapiro-Wilk's test to test for normality. 
 
 ```{r}
-shapiro.test(log_mpg)
+shapiro.test(cars$log_mpg)
 ```
 
 We now observe a higher p-value, but we still reject the null-hypothesis because the p-value is lower than 0.05. 
@@ -71,7 +92,7 @@ We now observe a higher p-value, but we still reject the null-hypothesis because
 Again, using the `boxplot` function we note that there are no outliers.
 
 ```{r}
-boxplot(log_mpg, plot=FALSE)$out
+boxplot(cars$log_mpg, plot=FALSE)$out
 ```
 
 ### Bivariate distribution of car weight and acceleration
@@ -82,16 +103,19 @@ Now we are going to describe the bivariate distribution of car weight and car ac
 bivar = cbind(cars$weight, cars$acceleration)
 colMeans(bivar)
 cov(bivar)
-plot(bivar)
+ggplot(data=as.data.frame(bivar),aes(x=bivar[,1],y=bivar[,2])) +
+  geom_point(color = "#F8766D")+
+  xlab('Weight')+
+  ylab('Acceleration') +
+  ggtitle("Scatterplot of Weight vs Acceleration", subtitle = NULL)
 ```
 
 By visual inspection it looks like the data is not normally distributed. To further test this intuition we will resort to `MVN` package for a variety of multivariate normality test: *mardia*, *hz*, and *royston*.
 
 ```{r}
-library(MVN)
-mvn(bivar, mvnTest="mardia")
-mvn(bivar, mvnTest="hz")
-mvn(bivar, mvnTest="royston")
+mvn(bivar, mvnTest="mardia")$multivariateNormality
+mvn(bivar, mvnTest="hz")$multivariateNormality
+mvn(bivar, mvnTest="royston")$multivariateNormality
 ```
 
 Both Henze-Zirkler’s MVN test and Royston’s MVN test tell use that the data is not normally distributed, whereas Mardia’s MVN test suggests the opposite. It could therefore be informative to look at the Q-Q plot.
@@ -102,14 +126,23 @@ invisible(mvn(data = bivar, mvnTest="mardia", multivariatePlot="qq"))
 
 In the Q-Q plot we see that the residuals start to diverge from the straight line, which also suggest that the data is *not* normally distributed. Combining all the evidence, it seems most likely that the data is not normally distributed.
 
-In an attempt to improve normality by using a box-cox transformation we observe no improvements:
+In an attempt to improve normality by using a Box-Cox transformation we observe no improvements. This is shown by the following code.
+
+Firstly, we find the power coefficients.
 ```{r}
-library(car)
 summary(powerTransform(bivar~1))
+```
+
+Secondly, we apply the Box-Cox power transform with ($\lambda_1=0.4528$, $\lambda_2=0.514 $).
+```{r}
 bivar_cb = bcPower(bivar, c(0.4528,0.514))
-mvn(bivar_cb, mvnTest="mardia")
-mvn(bivar_cb, mvnTest="hz")
-mvn(bivar_cb, mvnTest="royston")
+```
+
+Lastly, we apply the MVN tests on the transformed variable.
+```{r}
+mvn(bivar_cb, mvnTest="mardia")$multivariateNormality
+mvn(bivar_cb, mvnTest="hz")$multivariateNormality
+mvn(bivar_cb, mvnTest="royston")$multivariateNormality
 ```
 
 Lastly, we check if there are any outliers in the bivariate data. For this we use the `multivariateOutlierMethod = "quan"` argument to the `mvn` function. It will select all points with a Mahalanobis distance larger than the 97.5% quantile of the chi-square distribution as an outlier.
@@ -127,6 +160,73 @@ In this section we will explore the linear relationships for a subset of the dat
 ```{r}
 cars_sub = cars[,c('mpg', 'displacement', 'horsepower', 'weight', 'acceleration')]
 ```
+
+
+#### Covariance and Correlation matrix
+
+```{r}
+cov(cars_sub)
+r=cor(cars_sub)
+r
+```
+
+We just displayed below the R-matrix. We can visualize it with a plot showing the correlation between the variables in a more intuitive way :
+```{r}
+corrplot(r, method = "circle")
+```
+
+Which variables are correlated the most ?
+
+```{r}
+diag(r)=0
+which(r==max(abs(r)), arr.ind=TRUE)
+```
+
+The most correlated variables are weight and displacement which is logical because physically, displacement is strongly related to the car's weight.
+Indeed, the correlation between these two variables is: 0.9128930 which is very high. We have a very strong linear relationship which implies that variables are measuring almost the same thing. Furthermore, almost all absolute correlations are high, apart from the acceleration-weight (0.4985387) and the acceleration-mpg (0.4747480) correlation.
+
+#### Partial correlations
+
+Let's explore the relationship between our 5 variables through partial correlations :
+
+```{r}
+pcor(cars_sub)
+matrix.partial=pcor(cars_sub)$estimate
+```
+
+Visualizing partial correlations
+
+```{r}
+corrgram(matrix.partial,
+         lower.panel=panel.shade, upper.panel=panel.pie,
+         diag.panel=panel.minmax, text.panel=panel.txt)
+
+corrplot.mixed(matrix.partial,order="AOE" )
+```
+
+Displaying the plots, we can see that partial correlations are closer to zero than ordinary correlations. In this case, this is suggesting that the relationship
+between the variables of interest could be explained by their common relationships to the
+explanatory variables upon which we are conditioning.
+
+#### Coefficient of determination
+
+Define a function r2multv for squared multiple correlation coeficients
+
+```{r}
+r2multv<-function(x){
+  r2s=1-1/(diag(solve(cov(x)))*diag(cov(x)))
+  r2s
+}
+```
+
+use it on data set "cars_sub"
+
+```{r}
+r2multv(cars_sub)
+```
+
+The coefficient of determination of displacement, horsepower, weight and mpg "explained" by the correlation with the other variables are higher than 80%. This means that more than 80% of the variance of these variables is explained by the correlation. In other words an R2 of more than 0.80 means that 80 percent of the variance in these variables is predictable from the others.
+Concerning the coefficient of determination of acceleration, we have a 0.67, the data is some scattered.
 
 #### The determinant of R
 
