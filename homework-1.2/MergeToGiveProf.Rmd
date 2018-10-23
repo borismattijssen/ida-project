@@ -1,6 +1,6 @@
 ---
 title: "Homework 1.2"
-author: Ettore Puccetti, Lorenzo Foà, Mehdi El Idrissi, Boris Mattijssen
+author: Ettore Puccetti, Lorenzo Foa, Mehdi El Idrissi, Boris Mattijssen
 output:
   html_document:
     df_print: paged
@@ -134,7 +134,7 @@ mvn(bivar, mvnTest="hz")$multivariateNormality
 mvn(bivar, mvnTest="royston")$multivariateNormality
 ```
 
-Both Henze-Zirkler’s MVN test and Royston’s MVN test tell use that the data is not normally distributed, whereas Mardia’s MVN test suggests the opposite. It could therefore be informative to look at the Q-Q plot.
+Both Henze-Zirkler???s MVN test and Royston???s MVN test tell use that the data is not normally distributed, whereas Mardia???s MVN test suggests the opposite. It could therefore be informative to look at the Q-Q plot.
 
 ```{r}
 invisible(mvn(data = bivar, mvnTest="mardia", multivariatePlot="qq"))
@@ -352,7 +352,7 @@ cat("P-value of the permutation test ",prob)
 
 The p-value is quite high, so i will accept H0 as true, so the two variables ar uncorrelated.
 
-Histogram of the distribution of r among the simulations, the red line stays for the Pearson correlation coefficient
+Histogram of the distribution of r among the simulations, the red line stays for the Pearson correlation coefficient of the original dataset
 ```{r}
 hist(corr_vector, breaks = 50, main =  expression(paste("Distribution around ",rho, "= 0")), xlab = "r from randomized samples")
 a=c(co,co)
@@ -420,7 +420,7 @@ cat("P-value of the permutation test ",prob)
 
 Since the p-value is very low, we have statistical evidence that the two variables ar correlated.
 
-Histogram of the distribution of r among the simulations, the red line stays for the Pearson correlation coefficient
+Histogram of the distribution of r among the simulations, the red line stays for the Pearson correlation coefficient of the original dataset
 ```{r}
 hist(corr_vector, breaks = 50, main =  expression(paste("Distribution around ",rho, "= 0")), xlab = "r from randomized samples")
 a=c(co,co)
