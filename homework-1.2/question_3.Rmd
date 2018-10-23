@@ -19,8 +19,8 @@ library(corrplot)
 cars = read.delim("/home/mehdi/Bureau/ida_hmw_1.2/cars.txt", sep = "", dec = ".")
 ```
 
-For this part, we decided to choose 5 qualitative variables : mpg, displacement, horsepower, weight and acceleration
-We created a new data set with only these 5 qualitative variables : carsquali
+For this part, we decided to choose 5 quantitative variables : mpg, displacement, horsepower, weight and acceleration
+We created a new data set with only these 5 quantitative variables : carsquali
 
 ```{r}
 carsquali=as.data.frame(cars[,3:6], title=TRUE)
@@ -46,7 +46,7 @@ diag(r)=0
 which(r==max(abs(r)), arr.ind=TRUE)
 ```
 The more correlated variables are weight and displacement which is logical because physically, displacement is strongly related to the car's weight.
-Indeed, the correlation between these two variable is : 0.9128930 which is very high. We have a very strong linear relationship which implies that variables are measuring almost the same
+Indeed, the correlation between these two variables is : 0.9128930 which is very high. We have a very strong linear relationship which implies that variables are measuring almost the same
 thing. However, in absolute value, the correlation between all these variables apart between acceleration and weight (0.4985387) and between acceleration and mpg (0.4747480) are high. We have a strong relationship implying that we can be confident that these two variables are
 connected in some way.
 
