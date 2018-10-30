@@ -1,0 +1,93 @@
+---
+title: "Homework 1.3"
+output: html_notebook
+---
+
+<style>
+  .superbigimage{
+      overflow-x:scroll;
+      white-space: nowrap;
+  }
+
+  .superbigimage img{
+     max-width: none;
+  }
+
+
+</style>
+
+## Introduction
+
+## The cars dataset
+
+```{r, warning=FALSE,message=FALSE}
+library(ggplot2)
+library(GGally)
+library(FactoMineR)
+library(factoextra)
+```
+
+```{r}
+cars <- read.table("cars.txt", header=TRUE, as.is=TRUE)
+cars <- na.omit(cars)
+rownames(cars) <- abbreviate(make.unique(cars$name))
+cars$origin <- as.factor(cars$origin)
+```
+
+### Principal component analysis
+
+Perform the PCA:
+```{r}
+cars.pc <- select(cars, mpg, cylinders, displacement, horsepower, weight, acceleration, year, origin)
+cars.pca=PCA(cars.pc,quali.sup=8,ncp=5,scale.unit=TRUE, graph=FALSE)
+```
+
+#### Analysis of the principal components
+First, we look at the variances explained by the different prinicipal components:
+```{r}
+cars.pca$eig
+```
+
+From this table we see that most variance is explained by the first principle component (PC) (71.59%), while the second and third PC also contribute some variance. This can also be visually observed with a scree plot.
+```{r}
+plot(cars.pca$eig[,1], type="l")
+points(cars.pca$eig[,1])
+```
+
+#### Analysis of the transformed observations
+A plot of the first two principal components, grouped by the car's origin, looks as follows.
+```{r}
+fviz_pca_ind(cars.pca,  label="none", habillage = "origin", addEllipses=TRUE, ellipse.level=0.95)
+```
+
+From this plot we see that in the first two principal components we can already separate the class (origin=1) pretty well, but the other two classes are still overlapping. 
+
+Now, let us find out which individuals contribute most to the first principle component.
+```{r}
+indcontrib <- data.frame(C1=cars.pca$ind$contrib[,1],n=rownames(cars.pc))
+G1 <- ggplot(indcontrib,aes(x=n, y=C1)) +
+  geom_bar(position=position_dodge(), stat="identity", fill="steelblue") +
+  geom_text(aes(label=n), vjust=1.6, color="white", size=2.5, position=position_dodge(0.9)) +
+  geom_hline(yintercept=100/74)
+# the graph below is horizonally scrollable
+```
+<div class="superbigimage">
+```{r plot_it, fig.width=30,fig.height=3, echo=FALSE}
+G1
+```
+</div>
+
+#### Analysis of the variables
+To understand the relations between the original variables and the PCA'd variables we can look at their correlations. Strong correlations imply that the PCA'd variable represents the original variable well. These correlations are nicely visualized with a **circle of correlations**. Here we show the circle of correlations for the first two PCA dimensions.
+
+```{r}
+fviz_pca_var(cars.pca, col.var="contrib")
+```
+
+The plot also colors the correlation vectors according to the contribution of the variable. The angle between the vectors and the dimensions can be used as an indicator of how much each variable contributes to that dimension. Most of the variables that have a high contribution align well with Dimension 1, since Dimension 1 explains most of the variance in the original dataset. A numerical overview of the contributions is given in the table below. The expected value of the contribution is also shown. 
+```{r}
+### THIS NEEDS REVISION
+cars.pca$var$contrib
+pca_vars <- cars.pca$eig[1:2,2]/100
+cars.pca$var$contrib[,1:2] %*% t(t(pca_vars))
+```
