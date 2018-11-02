@@ -1,0 +1,73 @@
+---
+title: "Untitled"
+author: "Ettore Puccetti"
+date: "10/30/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE,message=FALSE}
+library(ggplot2)
+library(GGally)
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(tidyr)
+library(cluster)
+
+
+```
+
+
+```{r}
+
+# loading and extracting the 5 features
+
+cars <- read.table("cars.txt", header=TRUE, as.is=TRUE)
+cars <- na.omit(cars)
+rownames(cars) <- abbreviate(make.unique(cars$name))
+cars$origin <- as.factor(cars$origin)
+cars.pc <- select(cars, mpg, cylinders, displacement, horsepower, weight, acceleration, year, origin)
+cars.pca=PCA(cars.pc,quali.sup=8,ncp=5,scale.unit=TRUE, graph=FALSE)
+
+# five principal component scores:
+car5 <- cars.pca$ind$coord
+car5_scale <- scale(car5, center=FALSE)
+```
+
+
+```{r}
+# quick view of the 5 variable distributions 
+
+ggplot(gather(as.data.frame(car5)), aes(value)) + 
+  geom_histogram(bins = 25) + 
+  aes(fill = as.factor(key)) + 
+  facet_wrap(~key)
+
+# after normalization
+
+ggplot(gather(as.data.frame(car5_scale)), aes(value)) + 
+  geom_histogram(bins = 25) + 
+  aes(fill = as.factor(key)) + 
+  facet_wrap(~key)
+```
+
+```{r}
+dist.car5=get_dist(car5_scale)
+
+set.seed(12345)
+
+#k=3:
+car5.k3 <- kmeans(car5_scale, centers=3, iter.max=100, nstart=25)
+pairs(car5, col=car5.k3$cluster)
+
+# We can also get the average silhouette width with kmeans:
+summary(silhouette(car5.k3$cluster,dist.car5))$avg.width
+
+fviz_cluster(list(data=car5,cluster=car5.k3$cluster))
+
+```
+
