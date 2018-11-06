@@ -53,7 +53,7 @@ cars.pca=PCA(cars.pc,quali.sup=8,ncp=5,scale.unit=TRUE, graph=FALSE)
 #### Analysis of the principal components
 First, we look at the variances explained by the different prinicipal components:
 ```{r}
-cars.pca$eig
+kable(cars.pca$eig)
 ```
 
 From this table we see that most variance is explained by the first principle component (PC) (71.59%), while the second and third PC also contribute some variance. This can also be visually observed with a scree plot.
@@ -161,7 +161,7 @@ pairs(car5_scale, col=car5.k3$cluster)
 
 ```
 
-From this first plot, is evident that the cluster division has followed more the distribution of the first two dimensions. The scatter plot of the first two variables, indeed, shows how the clusters division avoid quite well any overlapping, and divide point belonging to different areas of the 2-D space. A neat separation of the clusters it's not present in any other different combination of dimensions.
+From this first plot, it is evident that the cluster division has followed mainly the distribution of the first two dimensions. The scatter plot of the first two variables shows how the clusters are almost non-overlapping. A neat separation of the clusters is not present in any other combination of dimensions.
 
 ### Matching the clusters with the Origins class
 
