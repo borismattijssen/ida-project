@@ -65,14 +65,14 @@ Variability explained by the first principal component
 Wines_PCA_r$eig[1,2]
 ```
 
-cumulative variance explained by the first 4 variables
+Cumulative variance explained by the first 4 variables
 
 ```{r}
 Wines_PCA_r$eig[1:4,2:3]
 ```
 
 
-A graphic representation of the variables' contribute to the first two PCs.
+A graphic representation of the variables' contribute to the first two principal components.
 For a given dimension, any row/column with a contribution above the reference line could be considered as important in contributing to the dimension.
 
 ```{r}
@@ -80,22 +80,29 @@ fviz_contrib(Wines_PCA_r, choice = "var", axes = 1, top = 11)
 fviz_contrib(Wines_PCA_r, choice = "var", axes = 2, top = 11)
 ```
 
+The first 4/5 principal components explain most of the variability.
 
 
-observation on the first 2 components by type
+Observations plotted on the first 2 components and coloured by type
 
 ```{r}
 fviz_pca_ind(Wines_PCA_r,habillage = "type", addEllipses = TRUE)
 
 ```
 
-Crearly red and white wine is not the same!
+The first principal component clearly separates wines by their type: white wines mostly have higher values than red wines.
 but all the white wines have common charcteristics and red wines as well
-The first principal component clearly separates wines by their type.
-Can see some outliers. Their indexes are:15,67,95.
+
+Can also see some outliers. Their indexes are:15,67,95.
 
 #interpretation pc1 and pc2
-The first principal component can be interpreted as the inverse of the presence of
+The first principal component can be interpreted as some kind of inverse measure of the presence of grape pulp in the production process. If grape pulp is present the wine will be red, if these parts of the plant are discarded, the whine will be white.
+
+The second principal component, since the acidities' contributions are always positive, can be interpreted as wine's global acidity.
+
+```{r}
+Wines_PCA_r$var$coord[,2]
+```
 
 ```{r}
 Wines1=select(Wines_complete,fixedacidity,volatileacidity,citicacid,residualsugar,chlorides,freesulfurdioxide,totalsulfurdioxide,density,pH,sulphates,alcohol,quality)
