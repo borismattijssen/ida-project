@@ -119,6 +119,8 @@ fviz_pca_biplot(cars.pca)
 
 ### K-means clustering
 
+Here, we use the 5 principal components extracted in the previous steps, and we use them for clustering the dataset. Later on, we inspect how the clustered groups follow the distributions of two categorical variables of the original dataset, `Origins` and `Cylinders`. 
+
 ```{r,  warning=FALSE}
 
 # five principal component scores:
@@ -150,6 +152,8 @@ Once scaled, this behaviour is reduced.
 
 #####(k=3)
 
+The algorithm used for clustering, in this case, is a partitioning clustering, based on centroids.
+We specify the number of clusters we want to obtain (three), and we also fix a seed, as suggested, for replicability, since the algorithm gets his inizialization randomly.
 
 ```{r, warning=FALSE}
 
@@ -161,6 +165,7 @@ pairs(car5_scale, col=car5.k3$cluster)
 
 ```
 
+This is a matrix of scatterplots, representing all the combination of variables, two by two, for visualizing our 5-dimensions clusterized objects in 2D
 From this first plot, it is evident that the cluster division has followed mainly the distribution of the first two dimensions. The scatter plot of the first two variables shows how the clusters are almost non-overlapping. A neat separation of the clusters is not present in any other combination of dimensions.
 
 ### Matching the clusters with the Origins class
@@ -192,11 +197,11 @@ fviz_cluster(object= car5.k3, data=car5_scale, pointsize=4, geom="point", shape=
 While the colors represent the cluster partitions, the shape of the points represent the class `origins`.
 It's quite evident that our cluster partiotion did not work well for representing this information.
 
-Cluster one is "pure", containing only (but not all the) element of the first class, which is the more relevant in term of cardinality. It also do not overlap in space with the other two clusters.
+Cluster one (red) is "pure", containing only (but not all the) element of the first class (circle), which is the more relevant in term of cardinality. It also do not overlap in space with the other two clusters.
 
-The third cluster is also dominated by the presence of element from first class, but records from different classes are present. 
+The third cluster (blu) is also dominated by the presence of element from first class, but records from different classes are present. 
 
-Finally the third one is quite mixed. There's also a small region of space shared with the second cluster.
+Finally the second one (green) is quite mixed. There's also a small region of space shared with the second cluster, due to the fact that we are using only the first two dimensions for plotting.
 
 
 
@@ -235,31 +240,41 @@ fviz_cluster(object= car5_98.k3, data=car5_98, pointsize=4, geom="point",
 
 The clustering partion now is more coherent with the class cylinders. 
 On the left we have cluster two containing all and only records belonging to first class (cylinders = 4).
-In the middle, cluster three contains both elements from class two (cylinders = 6) and three (cylinders = 8), while cluster one surrounds the remaing element, all belonging to class three. Notice that the cluster division works better also because the class are already separated in space, according to the first two dimesions we are plotting.
+In the middle, cluster three contains both elements from class two (cylinders = 6) and three (cylinders = 8), while cluster one surrounds the remaing elements, all belonging to class three. Notice that the cluster division looks better also because the classes are already separated in space, according to the first two dimesions we are plotting.
 
 
 
 #### LUMP and SPLIT errors
 
+In order to evaluate the clustering partition, we use the two proposed metrics, lump and split errors, which count the number of time two elements of different classes are found in the same cluster, and how many objects of same class will be splitted in different clusters, respectively.
 
 #####function definition
 
 ```{r}
 count.errors <- function (class, cluster, error) {
+  
+  # two auxiliary matrices, used for building the "adiacence" matrix
   matrix.class.row <- matrix(class,length(class),length(class), byrow = T)
   matrix.class.col <- matrix(class,length(class),length(class), byrow = F)
+  # the "adiacence" matrix: each cell is True if the record at row and column number belong to the same class.
+  # of course it is symmetric, and the cells in the diagonal are all True (each element belong to the same class of itself)
   matrix.class.same <- matrix.class.col==matrix.class.row
   
+  
+  # we do the same for clustering partition
   matrix.cluster.row <- matrix(cluster,length(cluster),length(cluster), byrow = T)
   matrix.cluster.col <- matrix(cluster,length(cluster),length(cluster), byrow = F)
   matrix.cluster.same <- matrix.cluster.col==matrix.cluster.row
   
   if (error == "lump") {
+    # a lump error is found when two element of different classes are putted in the same cluster
     matrix.lump <- matrix.cluster.same==T & matrix.class.same==F
+    # since the matrix is symmetric, we need to consider half of the errors.
     n.lump <- sum(matrix.lump==T) / 2
     return(n.lump)
   } else { 
     if (error == "split") {
+      # a split error is found when two element of same class are putted in two different clusters
       matrix.split <- matrix.class.same==T & matrix.cluster.same==F
       n.split <- sum(matrix.split==T) / 2
       return(n.split)
