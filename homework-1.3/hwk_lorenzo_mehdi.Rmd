@@ -102,12 +102,14 @@ Wines_PCA_r$var$coord[,2]
 Rerun PCA using quality as supplementary qualitative variable
 
 ```{r}
+Wines1=select(Wines_complete,fixedacidity,volatileacidity,citicacid,residualsugar,chlorides,freesulfurdioxide,totalsulfurdioxide,density,pH,sulphates,alcohol,quality)
+
 Wines_PCA_r1=PCA(Wines1, scale.unit = TRUE, ncp = 4, ind.sup = NULL, 
                 quanti.sup = NULL, quali.sup = 12 , row.w = NULL, 
                 col.w = NULL, graph = FALSE)
 ```
 
-observation on the first 2 components by quality
+Observation on the first 2 components by quality
 
 ```{r}
 fviz_pca_ind(Wines_PCA_r1,habillage="quality")
