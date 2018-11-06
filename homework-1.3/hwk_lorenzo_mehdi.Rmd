@@ -91,7 +91,7 @@ but all the white wines have common charcteristics and red wines as well
 Can also see some outliers. Their indexes are:15,67,95.
 
 interpretation pc1 and pc2
-The first principal component can be interpreted as some kind of inverse measure of the presence of grape pulp in the production process. If grape pulp is present the wine will be red, if these parts of the plant are discarded, the whine will be white.
+The first principal component can be interpreted as some kind of inverse measure of the presence of grape pulp in the production process. If grape pulp is present the wine will be red, if these parts of the plant are discarded, the wine will be white.
 
 The second principal component, since the acidities' contributions are always positive, can be interpreted as wine's global acidity.
 
