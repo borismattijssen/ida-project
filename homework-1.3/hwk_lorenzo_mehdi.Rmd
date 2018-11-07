@@ -6,8 +6,7 @@ output: html_document
 df_print: paged
 ---
 
-## Homework 1.3a
-
+## The wines dataset
 
 ```{r, warning=FALSE,message=FALSE}
 library(ggplot2)
@@ -18,20 +17,15 @@ library(MASS)
 library(dplyr)
 ```
 
-
-
-
-Performing the PCA on the correlation matrix is equivalent to standardizing each of the variables. In general, PCA with and without standardizing will give different results. Especially when the scales are different. So since i have very dfferent scalses in my dataset I will use R matrix.
+Performing the PCA on the correlation matrix is equivalent to standardizing each of the variables. In general, PCA with and without standardizing will give different results. Especially when the scales are different. So since we have different scales in my dataset I will use R matrix.
 
 ```{r}
-Wines_complete = read.delim("C:/Users/utente/Desktop/Intelligent Data Analysis/Wines.txt", sep = "", dec = ".",header=FALSE,col.names=c('fixedacidity','volatileacidity','citicacid','residualsugar','chlorides','freesulfurdioxide','totalsulfurdioxide','density','pH','sulphates','alcohol','quality','type'))
+Wines_complete = read.delim("wines.txt", sep = "", dec = ".",header=FALSE,col.names=c('fixedacidity','volatileacidity','citicacid','residualsugar','chlorides','freesulfurdioxide','totalsulfurdioxide','density','pH','sulphates','alcohol','quality','type'))
 Wines=select(Wines_complete,fixedacidity,volatileacidity,citicacid,residualsugar,chlorides,freesulfurdioxide,totalsulfurdioxide,density,pH,sulphates,alcohol,type)
 Wines=na.omit(Wines)
 ```
 
-
-#PCA
-The main purpose of principal component analysis is to identify hidden pattern in a data set, to reduce the dimensionnality of the data by removing the noise and redundancy in the data and also to identify correlated variables.
+The main purpose of principal component analysis is to identify hidden patterns in a data set, to reduce the dimensionnality of the data by removing the noise and redundancy in the data and also to identify correlated variables.
 
 ```{r}
 Wines_PCA_r=PCA(Wines, scale.unit = TRUE, ncp = 4, ind.sup = NULL, 
@@ -47,7 +41,7 @@ plot(1:length(Wines_PCA_r$eig[,1]),Wines_PCA_r$eig[,1],type = "o",main = "Scree 
 plot(1:length(Wines_PCA_r$eig[,2]),Wines_PCA_r$eig[,2],type = "o",main = "Scree plot",xlab = "Component number",ylab = "Percentage of variance explained")
 ```
 
-We can note that the eigenvalues are 'large' until the fourth/fifth component, the sixth starts being 'small'. These plots show us that in both cases, the eigenvalues and the percentage of variance explained are high for the fourth first components (eigenvalue > 1.2 and percentage > 10). In that sens, we decide to keep the first four components.
+We can note that the eigenvalues are 'large' until the fourth/fifth component, the sixth starts being 'small'. These plots show us that in both cases, the eigenvalues and the percentage of variance explained are high for the fourth first components (eigenvalue > 1.2 and percentage > 10). Therefore, we decide to keep the first four components.
 
 Analytical description of the first 4 principal components
 
@@ -85,12 +79,10 @@ Observations plotted on the first 2 components and coloured by type
 fviz_pca_ind(Wines_PCA_r,habillage = "type", addEllipses = TRUE)
 ```
 
-The first principal component clearly separates wines by their type: white wines mostly have higher values than red wines.
-but all the white wines have common charcteristics and red wines as well
+The first principal component clearly separates wines by their type: white wines mostly have higher values than red wines. But all the white wines have common charcteristics and red wines as well.
 
-Can also see some outliers. Their indexes are:15,67,95.
+Can also see some outliers. Their indexes are: 15, 67, and 95.
 
-interpretation pc1 and pc2
 The first principal component can be interpreted as some kind of inverse measure of the presence of grape pulp in the production process. If grape pulp is present the wine will be red, if these parts of the plant are discarded, the wine will be white.
 
 The second principal component, since the acidities' contributions are always positive, can be interpreted as wine's global acidity.
@@ -141,7 +133,7 @@ fviz_pca_ind(Wines_PCA_r1,habillage="quality")
 
 ```
 
-Trying to separate the data between (more, less or equal than 6) quality's categories, we can also notice that there's no pattern in that case.
+Trying to separate the data between (more, less or equal than 6) quality's categories, we can also notice that there's no pattern in that case in the first two dimensions.
 
 ```{r}
 fviz_pca_var(Wines_PCA_r1, col.var = "cos2",
@@ -149,4 +141,4 @@ fviz_pca_var(Wines_PCA_r1, col.var = "cos2",
              repel = TRUE)
 ```
 
-For the variables : volatileacidity, chlorides, sulphates, fixedacidity, citicacid, freesulfudioxide, totalsulfurdioxide and Ph, cos2 is high because the variable are positioned close to the circumference of the correlation circle. This indicates a good representation of the variables on the principal component.
+For the variables : volatileacidity, chlorides, sulphates, fixedacidity, citicacid, freesulfudioxide, totalsulfurdioxide and Ph, cos2 is high because the variable are positioned close to the circumference of the correlation circle. This indicates a good representation of the variables on the first two principal components.

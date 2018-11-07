@@ -70,19 +70,11 @@ fviz_pca_ind(cars.pca,  label="none", habillage = "origin", addEllipses=TRUE, el
 
 From this plot we see that in the first two principal components we can already separate the class `origin=1` pretty well, but the other two classes are still overlapping. 
 
-Now, let us find out which individuals contribute most to the first principle component.
-```{r}
-contrib.sorted <- sort(cars.pca$ind$contrib[,1],decreasing = TRUE)
-indcontrib <- data.frame(C1=contrib.sorted,n=as.factor(names(contrib.sorted)))
-G1 <- ggplot(indcontrib,aes(x=reorder(n,-C1), y=C1)) +
-  geom_bar(position=position_dodge(), stat="identity", fill="steelblue") +
-  geom_text(aes(label=n), vjust=1.6, color="white", size=2.5, position=position_dodge(0.9)) +
-  geom_hline(yintercept=100/74)
-# the graph below is horizonally scrollable
-```
+Now, let us find out which individuals contribute most to the first principle component. In the plot below, all individuals that are above the red dashed line should be considered important in contributing to Dimension 1.
+
 <div class="superbigimage">
-```{r plot_it, fig.width=30,fig.height=3, echo=FALSE}
-G1
+```{r plot_it, fig.width=30,fig.height=3}
+fviz_contrib(cars.pca, choice = "ind", axes = 1)
 ```
 </div>
 
