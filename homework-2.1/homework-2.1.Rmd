@@ -25,7 +25,7 @@ diamonds <- read.table("HW-diamonds.txt", header=FALSE, col.names = c('caratage'
 kable(diamonds[1:5,])
 ```
 
-## Caratage
+## Caratage (Q1)
 
 ```{r}
 G1 <- ggplot(diamonds, aes(x=caratage, y=price)) + geom_point() + geom_smooth(method = "lm")
@@ -33,7 +33,9 @@ G2 <- ggplot(diamonds, aes(x=caratage, y=log(price))) + geom_point() + geom_smoo
 grid.arrange(G1,G2,ncol=2)
 ```
 
-## Categorical information
+From these plots it seems that there is a more linear relationship between caratage and log(price), than between caratage and price. Therefore, we choose to use log(price) as our response variable.
+
+## Categorical information (Q2)
 
 ```{r}
 # reorder
@@ -46,8 +48,6 @@ lm1 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert, data=d
 summary(lm1)
 ```
 ### Interpretation of model fit
-
-Comments on model fit:
 
 * Besides certGIA we find high significant net effects on all explenatory variables.
 * One point increase in caratage increases the `log(price)` 2.855 times, everything else being the same. A 2.855 increase in `log(price)` is equivalent to a `exp(2.855) = 17.374` increase in price.
@@ -94,3 +94,41 @@ dwtest(lm1)
 ```
 
 Looking at the autocorrelation plot we assume that there is no independence in the residuals. This assumption is confirmed by the Durbin-Watson test by rejecting the null hypothesis stating that the autocorrelation of the residuals is equal to 0.
+
+
+## Squared carat (Q 3b)
+
+Let us see what happens if we include the squared caratage in the linear model. 
+
+```{r}
+lm3 = lm(formula = log(price) ~ caratage + I(caratage^2) + color_purity + clarity + cert, data = diamonds)
+summary(lm3)
+```
+
+From the summary we see that the squared caratage is actually of significance for the model. Let us have a look at the model plots. 
+
+### Model plots
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm3, which=c(1:4), ask=F)
+```
+
+From these plots it looks at least like the variance is constant. Also, the residuals seem more normal distributed, but it is unclear from the plot whether it really is. Let us look at the statistical test to quantify our assumptions.
+
+### Statistical tests
+
+```{r}
+jarque.bera.test(lm3$residuals)
+bptest(lm3)
+dwtest(lm3)
+```
+
+From these tests we presume that the residuals are normally distributed, constant in variance, but not independent. 
+
+## Comparing remedial actions (Q4)
+Looking at both remdial actions we note that both improve the validity of the assumptions. Namely, in both cases the residuals are now normally distributed. However, adding the squared caratage also improves the constant variance assumption, while adding the clustered caratage groups does not. Hence, we have a better model fit in the squared caratage case.
+
+On the other hand, adding a squared term to the model complicates its interpretability. For example, in this case, when the caratage raises by one point, the price increases `exp(5.671)=290` times, while increasing the squared caratage by one point increases the price `exp(-2.103)=0.122` times (i.e. decreases 88%). This makes it hard to assess the influence of the caratage on the price.
+
+The conclusion is that the comparison of the remedial actions is a comparison of model fit vs. interpretability. How this trade-off should be made depends on the application of the regression model. Since we are trying to educate laypeople, we believe that interpretability should be valued higher in this case. Therefore, we prefer the first remedial action.
