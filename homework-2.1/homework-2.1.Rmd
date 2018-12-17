@@ -15,6 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 library(gridExtra)
 library(ggplot2)
+library(car)
+library(tseries)
+library(lmtest)
 ```
 
 ```{r, results='asis', echo=TRUE}
@@ -41,6 +44,53 @@ diamonds$cert         = relevel(diamonds$cert, ref="HRD")
 # fit model
 lm1 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert, data=diamonds)
 summary(lm1)
-
-#Comment on the model 􏰁tted, and perform a basic analysis of the residuals (normality, constant variance, independence, you may also want to use the function outlierTest or residualPlot).
 ```
+### Interpretation of model fit
+
+Comments on model fit:
+
+* Besides certGIA we find high significant net effects on all explenatory variables.
+* One point increase in caratage increases the `log(price)` 2.855 times, everything else being the same. A 2.855 increase in `log(price)` is equivalent to a `exp(2.855) = 17.374` increase in price.
+* Having color purity D increases the `log(price)` 0.42 times, compared to having color purity I, everything else being the same. A 0.417 increase in `log(price)` is equivalent to a `exp(0.417) = 1.517` increase in price.
+* Having clarityVVS1 influences the price almost just as much as having clarityIF, everything else being equal.
+* Having certIGI is worse for price than certHRD. Having certIGI compared to certHRD decreases the price `1 - exp(-0.174) = 0.160` times.
+
+### Model plots
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm1, which=c(1:4), ask=F)
+```
+
+From these plots we can already see that the variance is not constant. It first increases when the predicted values increase and later decreases again. Also, the residuals seem to not be normally distributed. They look rather uniformly distributed. In the Cook's distance plot we spot a few true outliers (110, 214, 223) and high magnitudes in general.
+
+### Normality
+
+```{r}
+jarque.bera.test(lm1$residuals)
+```
+Testing statistically for residual normality we find indeed that the residuals are not normally distributed. Hence, the p-value is < 0.05 and so we reject the null hypothesis stating that the data is normally distributed.
+
+```{r}
+outlierTest(lm1, cutoff=0.05)
+jarque.bera.test(lm1$residuals[-c(211)])
+```
+When we remove the one outlier detected by the outlier test, the p-value decreases even further.
+
+### Constant variance
+
+```{r}
+bptest(lm1)
+```
+
+Testing for constant variance we find that we can reject the null hypothesis stating that the residuals are homocedastic. Hence, the test points out that we do not have constant variance in the residuals. 
+
+
+### Independence of the residuals
+
+```{r}
+lag.plot(lm1$residuals)
+dwtest(lm1)
+```
+
+Looking at the autocorrelation plot we assume that there is no independence in the residuals. This assumption is confirmed by the Durbin-Watson test by rejecting the null hypothesis stating that the autocorrelation of the residuals is equal to 0.
