@@ -7,11 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction
-
-## Diamonds dataset
-
-```{r, warning=FALSE,message=FALSE}
+####Loading packages
+```{r}
 library(knitr)
 library(gridExtra)
 library(ggplot2)
@@ -20,11 +17,10 @@ library(tseries)
 library(lmtest)
 ```
 
-```{r, results='asis', echo=TRUE}
-diamonds <- read.table("HW-diamonds.txt", header=FALSE, col.names = c('caratage', 'color_purity', 'clarity', 'cert', 'price'))
-kable(diamonds[1:5,])
-```
 
+```{r}
+diamonds <- read.table("HW-diamonds.txt", header=FALSE, col.names = c('caratage', 'color_purity', 'clarity', 'cert', 'price'))
+```
 ## Caratage (Q1)
 
 ```{r}
@@ -96,7 +92,88 @@ dwtest(lm1)
 Looking at the autocorrelation plot we assume that there is no independence in the residuals. This assumption is confirmed by the Durbin-Watson test by rejecting the null hypothesis stating that the autocorrelation of the residuals is equal to 0.
 
 
-## Squared carat (Q 3b)
+```{r}
+diamonds <- read.table("HW-diamonds.txt", header=FALSE, col.names = c('caratage', 'color_purity', 'clarity', 'cert', 'price'))
+```
+
+## Trying two different remedial actions (Q3)
+### Interaction term between cat_carat and caratage (Q3.a)
+
+```{r}
+#New variable cat_carat created
+diamonds$cat_carat<-cut(diamonds$caratage, c(0,0.5,1,1.1))
+diamonds$cat_carat <- as.character(diamonds$cat_carat)
+diamonds$cat_carat[diamonds$caratage <= 0.5] <- "small"
+diamonds$cat_carat[diamonds$caratage > 0.5 & diamonds$caratage <= 1] <- "medium"
+diamonds$cat_carat[diamonds$caratage > 1] <- "large"
+diamonds$cat_carat <- as.factor(diamonds$cat_carat)
+diamonds$cat_carat = relevel(diamonds$cat_carat, ref = "small")
+```
+
+```{r}
+lm2 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert + cat_carat + caratage:cat_carat, data = diamonds)
+summary(lm2)
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm2, which=c(1:4), ask=F)
+```
+
+From these plots it seems like the variance isn't constant. However, the residuals seem more normal distributed. We can have a look at the statistical test to quantify our assumptions:
+
+```{r}
+jarque.bera.test(lm2$residuals)
+bptest(lm2)
+lag.plot(lm2$residuals)
+dwtest(lm2)
+```
+From these tests we presume that the residuals are normally distributed, but non constant in variance and not independent.
+
+* The regression model isn't satisfactory since residuals don't behave nicely. The variance isn't constant and we some outliers (33, 32, 210).
+
+* See with the teacher
+
+```{r}
+summary(lm2)
+```
+
+* In order to know which is more highly valued between color or clarity, we can notice that the mean for the color purity is : -0,25 whereas the mean for clarity is : -0,21. The more highly valued is clarity.
+
+```{r}
+diamonds$color_purity = relevel(diamonds$color_purity, ref="I")
+lm2 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert + cat_carat + caratage:cat_carat, data = diamonds)
+summary(lm2)
+```
+
+* Having purity=I as a reference, the price increases 1.53 for being a grade D diamond. Therefore, the average price of a grade D diamond is 53% higher than a grade I diamond, all other things being equal.
+
+```{r}
+diamonds$color_purity = relevel(diamonds$color_purity, ref="E")
+lm2 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert + cat_carat + caratage:cat_carat, data = diamonds)
+summary(lm2)
+```
+
+* Having purity=E as a reference, the price increases 1.09 for being a grade D diamond. Therefore, the average price of a grade D diamond is 9% higher than a grade I diamond, all other things being equal.
+
+```{r}
+diamonds$cert = relevel(diamonds$cert, ref="HRD")
+lm2 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert + cat_carat + caratage:cat_carat, data = diamonds)
+summary(lm2)
+
+diamonds$cert = relevel(diamonds$cert, ref="GIA")
+lm2 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert + cat_carat + caratage:cat_carat, data = diamonds)
+summary(lm2)
+
+diamonds$cert = relevel(diamonds$cert, ref="IGI")
+lm2 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert + cat_carat + caratage:cat_carat, data = diamonds)
+summary(lm2)
+```
+
+* Puting cert = GIA, HRD or IGI as reference has little effects in the three cases so basically we cannot say anything about the price differences amongst the stones appraised by the GIA, HRD and IGI.
+
+### Squared carat (Q 3b)
 
 Let us see what happens if we include the squared caratage in the linear model. 
 
@@ -132,3 +209,5 @@ Looking at both remdial actions we note that both improve the validity of the as
 On the other hand, adding a squared term to the model complicates its interpretability. For example, in this case, when the caratage raises by one point, the price increases `exp(5.671)=290` times, while increasing the squared caratage by one point increases the price `exp(-2.103)=0.122` times (i.e. decreases 88%). This makes it hard to assess the influence of the caratage on the price.
 
 The conclusion is that the comparison of the remedial actions is a comparison of model fit vs. interpretability. How this trade-off should be made depends on the application of the regression model. Since we are trying to educate laypeople, we believe that interpretability should be valued higher in this case. Therefore, we prefer the first remedial action.
+
+## R Markdown
