@@ -2,7 +2,7 @@ library(knitr)
 library(gridExtra)
 library(ggplot2)
 
-diamonds <- read.table("/home/mehdi/HW-diamonds.txt", header=FALSE, col.names = c('caratage', 'color_purity', 'clarity', 'cert', 'price'))
+diamonds <- read.table("HW-diamonds.txt", header=FALSE, col.names = c('caratage', 'color_purity', 'clarity', 'cert', 'price'))
 kable(diamonds[1:5,])
 summary(diamonds)
 
@@ -21,10 +21,10 @@ summary(lm1)
 diamonds$cat_carat<-cut(diamonds$caratage, c(0,0.5,1,1.1))
 diamonds$cat_carat <- as.character(diamonds$cat_carat)
 diamonds$cat_carat[diamonds$caratage <= 0.5] <- "small"
-diamonds$cat_carat[caratage > 0.5 & caratage <= 1] <- "medium"
-diamonds$cat_carat[caratage > 1] <- "large"
+diamonds$cat_carat[diamonds$caratage > 0.5 & diamonds$caratage <= 1] <- "medium"
+diamonds$cat_carat[diamonds$caratage > 1] <- "large"
 diamonds$cat_carat <- as.factor(diamonds$cat_carat)
 diamonds$cat_carat = relevel(diamonds$cat_carat, ref = "small")
 
-lm2 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert + caratage:cat_carat, data = diamonds)
+lm2 = lm(formula = log(price) ~ caratage + color_purity + clarity + cert + cat_carat + caratage:cat_carat, data = diamonds)
 summary(lm2)

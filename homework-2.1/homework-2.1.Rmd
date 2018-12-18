@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ####Loading packages
-```{r}
+```{r, warning=FALSE,message=FALSE}
 library(knitr)
 library(gridExtra)
 library(ggplot2)
@@ -139,7 +139,7 @@ From these tests we presume that the residuals are normally distributed, but non
 summary(lm2)
 ```
 
-* In order to know which is more highly valued between color or clarity, we can notice that the mean for the color purity is : -0,25 whereas the mean for clarity is : -0,21. The more highly valued is clarity.
+* In order to know which is more highly valued between color or clarity, we can notice that the mean for the color purity is : -0.25 whereas the mean for clarity is : -0.21. The more highly valued is clarity.
 
 ```{r}
 diamonds$color_purity = relevel(diamonds$color_purity, ref="I")
@@ -209,5 +209,3 @@ Looking at both remdial actions we note that both improve the validity of the as
 On the other hand, adding a squared term to the model complicates its interpretability. For example, in this case, when the caratage raises by one point, the price increases `exp(5.671)=290` times, while increasing the squared caratage by one point increases the price `exp(-2.103)=0.122` times (i.e. decreases 88%). This makes it hard to assess the influence of the caratage on the price.
 
 The conclusion is that the comparison of the remedial actions is a comparison of model fit vs. interpretability. How this trade-off should be made depends on the application of the regression model. Since we are trying to educate laypeople, we believe that interpretability should be valued higher in this case. Therefore, we prefer the first remedial action.
-
-## R Markdown
