@@ -4,7 +4,7 @@ author: "Ettore Puccetti Lorenzo Foa`"
 date: "11/20/2018"
 output: html_document
 ---
-
+  
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -17,137 +17,172 @@ library("vcdExtra")
 ```{r dataset loading}
 Elks.table=data.frame(expand.grid(Action=c("Crossing", "Retreat"), Traffic=c("Low", "High"),
                                   Vehicle=c("Car", "Truck")), count=c(287,57,237,52,40,42,57,12))
-
 # We want to have the table ordered, with Crossing, Car and Low traffic first
 Elks.table$Action = ordered(Elks.table$Action, levels = c("Crossing","Retreat"))
 Elks.table$Vehicle = ordered(Elks.table$Vehicle, levels = c("Car","Truck"))
 Elks.table$Traffic = ordered(Elks.table$Traffic, levels = c("Low","High"))
-
 Elks.partial = xtabs(count~Action+Vehicle+Traffic, Elks.table)
-
 ```
 
 ### LOW TRAFFIC
 
-```{r low traffic}
+We perform Pearson's chi-squared test.A statistical test applied to sets of categorical data to evaluate how likely it is that any observed difference between the sets arose by chance.
 
+```{r low traffic}
 Elks.low.Traffic = Elks.partial[,,1]
 chisq.test(Elks.low.Traffic)
 ```
-il p-value e' piccolo, quindi rifiutiamo l'ipotesi dell'indipendenza
+
+Since the p-value is very little we refuse the null hypothesis. In low traffic conditions the action made by the elk is related to the kind of vehicle is passing.
+
+We draw a mosaic plot
 
 ```{r mosaic plot}
 mosaic(t(Elks.low.Traffic), gp=shading_max, split_vertical=TRUE, labeling = labeling_values, main = "low traffic")
 ```
 
+The mosaic plot confirm the result of Pearson's chi-squared test and add other informations:
+in low traffic conditions elks are prone to ro retreat if there is a truck and to cross if the vehicle is a car.
 
 
-confermato dal mosaic plot: i Retreat con i Truck sono molti di piu` di quello che ci si aspetta, anche i Crossing con Car abbondano, seppur in misura minone scarseggiano i Retrat con Car e i Crossing con Truck
-
+We calculate the odds ratio.
 
 ```{r}
 or.low = oddsratio(Elks.low.Traffic, log=FALSE)
 or.low
 ```
 
-or.low ~= 5.28 vuol dire che le possibilita  di attraversare quando passa una macchina sono 5 volte di piu`  rispetto a quando passa un camion
+or.low ~= 5.29>>1 this means the probability to get a an elk cross the road is much higher than if there was a truck.
 
+
+Confidence interval
 
 ```{r}
 confint(or.low)
 ```
 
+The odds ratio is surely bigger than one
+
+
+
 
 ### HIGH TRAFFIC
+
+Pearson's chi-squared test
 
 ```{r}
 Elks.high.Traffic = Elks.partial[,,2]
 chisq.test(Elks.high.Traffic)
 ```
 
-p-value = 1, non possiamo rifiutare l'ipotesi di indipendenza
+The p-value is 1 so we can not refuse the independence hypothesis in high traffic conditions.
+
+
+Mosaic plot
 
 ```{r}
 mosaic(t(Elks.high.Traffic), gp=shading_max, split_vertical=TRUE, labeling = labeling_values, main = "high traffic")
 ```
 
-mosaic sembrerebbe confermare l'indipendenza
+The mosaic plot show that variables acton and vehicle are independent.
+
+
+Calculate the odds ratio
 
 ```{r}
-
 or.high = oddsratio(Elks.high.Traffic, log=FALSE)
 or.high
 ```
 
-or.high ~= 0.96 vuol dire che le possibilita  di attraversare quando passa una macchina 
-sono quasi quelle di quando passa un camion
+or.high ~= 0.96 it means that when the traffic is high the possibilities an elks crosses are the same regardless of the vehicle.
+
+
+Confidence interval
 
 ```{r}
 confint(or.high)
 ```
 
+It contains one.
 
 ## comparison between HIGH and LOW traffic
+
+We plot a fourfold plot for both low and high traffic.
+Following suitable standardization, the cell frequencies of a 2x2 table are shown as a quarter circle whose radius is proportional to frequency's square root, so that its area is proportional to the cell frequency. An association (odds ratio different from 1) between the binary row and column variables is indicated by the tendency of diagonally opposite cells in one direction to differ in size from those in the other direction; color is used to show this direction. Confidence rings for the odds ratio allow a visual test of the null of no association; the rings for adjacent quadrants overlap iff the observed counts are consistent with the null hypothesis.
 
 ```{r}
 fourfold(Elks.partial)
 ```
 
-si vede che in uno sono indipendenti e nell'altro no (grazie al cazzo) ma c'e` da spiegare come si interpretano i due grafici
+From low traffic fourfold plot we can see the odd rate is very different from one since the diagonally opposed cells have very different dimensions. Also the confidence rings for odds ratio don't overlap.Action and vehicle are not indipendent.
+In high traffic plot we can see the opposite: all cells' dimensions are almost the same and the confidence rings overlaps almost perfectly. We can conclude when the traffic is high action ad vehicle are indipendent.
+
+
+We plot on the same plot the two odds ratios and their confidence intervals.
 
 ```{r}
 or.part = oddsratio(Elks.partial, log=FALSE)
 plot(or.part)
 ```
 
-since the distributuon of oddratio for trafic=high is too skewed, we try to plot it again in log scale
-
-```{r}
-or.part = oddsratio(Elks.partial, log=T)
-plot(or.part)
-```
-
-QUALE E MEGLIO??
-  Non credo si possano lasciare entrambi i grafici, scegliere quale dobbiamo usare e commentare perche` l'abbiamo scelto
-
+Surely low traffic's odds ratio is bigger than high traffic's one.
 
 ## MARGINAL
 
-  mancano tutti i commenti sui grafici
+Pearson's chi-squared test on the dataset without traffic variable.
 
 ```{r}
 Elks.marginal = xtabs(count~Action+Vehicle, Elks.table)
 chisq.test(Elks.marginal)
 ```
-p-value piccolo, rifiutiamo ipotesi indipendenza
 
+The p-value is very little, we refuse indipendence hyopthesis for action and vehicle. 
+
+
+Mosaic plot
 
 ```{r}
 mosaic(t(Elks.marginal), gp=shading_max, split_vertical=TRUE, labeling = labeling_values, main = "marginal")
 ```
 
+The probability of retreating when there is a truck seems higher than if the variables where randomly distributed.
+
+
+Fourfold plot
+
 ```{r}
 fourfold(Elks.marginal)
 ```
 
-  conclusione?
+The fourfold plot says the two variable are not indipendent.
 
+Calculate odds ratio without the traffic
 
+```{r}
+or.marg=oddsratio(Elks.marginal)
+or.marg
+```
 
-
+It is close to one, so it indicates indipendence of action and vehicle.
+Since fourfold plot and odds ratio calculated whitout taking into account the traffic variable gives us conflicting informations, it is better to include the traffic variable in the anlaysis.
+  
 ## HOMOGENUES ASSOCIATION
+
+We perform Woolf test on homogeneous association.
 
 ```{r}
 woolf_test(Elks.partial)
 ```
 
-p-value piccolo (~0.0001) ci dice che possiamo rifiutare l'ipotesi di omogeneita  di odds ratio tra le varie
-tabelle parziali, e quindi non possiamo prenderne una sola e generalizzare ma vanno discusse una per una.
+The p- value is very little, so we refuse the null hypothesisi which states that the log odds ratio are the same through the two different contingency tables. This means it is impossible to extract from these data a rule that generalizes well for both the tables. It is better to analyze them separately low and high traffic.
 
 
 ## CONDITIONAL INDEPENDENCE 
 
+Performs a Cochran-Mantel-Haenszel chi-squared test on conditional indipendence from the strata.
+
 ```{r}
-mantelhaen.test(Elks.partial)
+mantelhaen.test(Elks.partial)$null.value
 ```
-altro p-value piccolo, le odd ratio non sono statisticamente tutte 1
+
+Very little p-value, ther is a strong statistical evidence that the odds ratios are not all equal to one.
