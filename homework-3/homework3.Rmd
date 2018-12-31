@@ -1,0 +1,124 @@
+---
+title: "Homework 3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include=FALSE}
+#install.packages("astsa")
+#install.packages("kableExtra")
+library("astsa")
+library("forecast")
+library("fpp")
+library("fpp2")
+library("gridExtra")
+library("ggplot2")
+library("knitr")
+library("kableExtra")
+```
+
+We present a brief study of a time series representing new housing approvals.
+It has monthly data from January 1997 to August 2013. [ Source: Banco de Espana - www.bde.es ]
+
+# 1.
+### Time series description
+
+```{r time series plot}
+df=readxl::read_xlsx("data_g12.xlsx", sheet = 1)
+house.ts <- ts(df[,2], frequency = 12,start = c(1997,1))
+autoplot(house.ts)
+```
+
+We can immediatly notice that the behaviour of the series changes drastically during year 2007. 
+
+The trend in the first part is slightly increasing, almost linearly, while in the second part it is strongly descending.
+
+The seasonality is more evident in the first part, while in the second part is harder to notice any seasonality at first sight, due to the different order of magnitude of the values, but could be still present.
+
+```{r seasonality, fig.height = 3, fig.width = 8, echo=FALSE}
+p1=ggmonthplot(house.ts)
+p2=ggseasonplot(house.ts)
+grid.arrange(p1, p2, ncol = 2)
+```
+
+There is not a constant variance in the series. We can notice higher variance in the central part, while the beginning (up to 2003) and the "tail" have lower variance.
+
+The first part seems to have a cyclical component. There are rises and falls barely visible, larger than the usual seasonal variations. A deeper inspection told us that the lowest frequency with the maximum amplitude is at ```fr=0.06```. 
+The estimated length of the cycle is then ```1/0.06 = 16.7```. 
+The pattern repeats approximately every 16.7 months.
+
+```{r cycle checking, results='hide', fig.show='hide'}
+which.max(spec.pgram(house.ts)$spec) # = 1
+spec.pgram(house.ts)$freq[1]         # = 0.06
+```
+
+```{r periodogram, fig.height = 4, fig.width =5, echo=FALSE}
+spec.pgram(house.ts)
+```
+
+After all these considerations, we consider the time series as not stationary.
+
+# 2.
+### Seasonal and Trend decomposition
+ 
+We use a method based on local weighted regression (loess) for extracting the trends and the seasonality of the series.
+Since the series has a non constant variance, we use a multiplicative decomposition.
+The method ``` stl()``` only offers an additive decomposition. We can obtain a multipicative one, by applying a logarithmic transformation to the original series.
+
+$$Y_t = S_t \times T_t \times E_t \longmapsto \log Y_t = \log S_t + \log T_t + \log E_t$$
+
+```{r stl decomposition}
+house.ts <- house.ts[,1]
+house.ts.log <- log(house.ts)
+stl.house <- stl(house.ts.log, s.window = "periodic", robust = TRUE)
+plot(stl.house$time.series)
+```
+
+### Forecasting
+
+We use three different methods for predicting future values of the series.
+Then we use a cross validation for predicting the error.
+
+```{r forecast plot}
+
+fcst=forecast(stl.house, method="ets", h=12)
+p1=autoplot(fcst)+ ylab("")
+
+fcst=forecast(stl.house, method="arima", h=12)
+p2=autoplot(fcst)
+
+fcst=forecast(stl.house, method="rwdrift", h=12)
+p3=autoplot(fcst) + ylab("")
+
+grid.arrange(p1,p2,p3)
+```
+
+```{r cross validation}
+stl.house.cv <- function(x, h, m){forecast(stl(x,s.window = "periodic", robust = TRUE), method=m, h=h)}
+error.ets <- tsCV(house.ts.log, stl.house.cv,m="ets", h=12)
+error.arima <- tsCV(house.ts.log, stl.house.cv,m="arima", h=12)
+error.rwd <- tsCV(house.ts.log, stl.house.cv, m="rwdrift", h=12)
+list.error <- data.frame(sqrt(mean(error.ets^2, na.rm=TRUE)), 
+                sqrt(mean(error.arima^2, na.rm=TRUE)),
+                sqrt(mean(error.rwd^2, na.rm=TRUE)), row.names = "RMSE")
+colnames(list.error) <- c("ets","arima","rwdrift")
+kable(list.error) %>% kable_styling(full_width = F)
+```
+
+The first method used ```("ets")``` seems to be the best one, as it shows a lower value of RMS error.
+
+
+### Residuals
+
+Let's check the residuals distribution. It remaind us a normal shape distribution with zero mean, but unconstant variance.
+Furthermore, the ACF plot does not enhance any significant correlation between the residuals.
+We can assume they are independents.
+```{r residuals}
+checkresiduals(stl.house$time.series[,3])
+```
+
+
