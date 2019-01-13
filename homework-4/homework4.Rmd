@@ -1,0 +1,77 @@
+---
+title: "Homework 4"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, include=FALSE}
+library("gridExtra")
+library("ggplot2")
+library("knitr")
+library("kableExtra")
+```
+
+## Differences after five years
+In this section we will study the differences between the people who are either still alive or have died five years after the treatment. We set the evidence to either `alive` or `death` in the `FIVEYEARRESULT` node of the network. We can now directly observe the probabilities of the clinical stage, histological classification, bulky disease, and clinical representation. The age distribution cannot be observed. For this, we would need information about the treatment. 
+
+```{r, include=FALSE}
+clinical.stage = data.frame( 
+  "cat" = c("I","II1","II2","III","IV"),
+  "alive" = c(0.5321138245037631, 0.3052550221978133, 0.1045571371685505, 0.002330945399205274, 0.05574307073066786),
+  "death" = c(0.4430129740409934, 0.255167655567063, 0.1680621719426844, 0.004706224877615442, 0.129050973571644)
+)
+histological.classification = data.frame( 
+  "cat" = c("LOW_GRADE", "HIGH_GRADE"),
+  "alive" = c(0.5083738767440769, 0.4916261232559233),
+  "death" = c(0.4603025691654955, 0.5396974308345046)
+)
+bulky.disease = data.frame( 
+  "cat" = c("YES", "NO"),
+  "alive" = c(0.2482441416979732, 0.7517558583020267),
+  "death" = c(0.3233065411115564, 0.6766934588884437)
+)
+clinical.presentation = data.frame( 
+  "cat" = c("NONE", "HEMORRHAGE", "PERFORATION", "OBSTRUCTION"),
+  "alive" = c(0.7547050794317334, 0.1895922818616187, 0.04543966071234194, 0.01026297799430604),
+  "death" = c(0.8604918969304747, 0.1123379436795314, 0.01719911306344046, 0.009971046326553521)
+)
+var.overview <- function(df) {
+  t = tableGrob(df)
+  p1 = ggplot(df, aes(x="", y=alive, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE)
+  p2 = ggplot(df, aes(x="", y=death, fill=cat)) + geom_bar(stat="identity", width=1)
+  return(grid.arrange(t, p1, p2, ncol = 3))
+}
+```
+
+### Clinical stage
+
+People that are still alive after five years are classified in less severe categories before the treatment. For example 53.2% of the alive people are classified in `cat I`, while only 44.3% of the death people are classified in that same category.
+
+```{r, echo=FALSE, fig.height = 2, fig.width = 10}
+var.overview(clinical.stage)
+```
+
+### Histological classification
+
+For the histological classification we hardly observe a difference between the two groups.
+
+```{r, echo=FALSE, fig.height = 2, fig.width = 10}
+var.overview(histological.classification)
+```
+
+### Bulky Disease
+
+People that survive after five years are less likely to have (had) a bulky disease. In fact, only 25% of the alive people was diagnosed with the bulky disease, while 32% of the death people had the bulky disease.
+
+```{r, echo=FALSE, fig.height = 2, fig.width = 10}
+var.overview(bulky.disease)
+```
+
+### Clinical presentation
+
+The clinical presentation differs mainly for hemmorage. From the alive group 7.2% more people had a gastric hemorrhage than the death group. Also a few more (2.8%) had a gastric perforation.
+
+```{r, echo=FALSE, fig.height = 2, fig.width = 10}
+var.overview(clinical.presentation)
+```
