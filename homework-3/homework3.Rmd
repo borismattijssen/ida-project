@@ -117,55 +117,66 @@ checkresiduals(stl.house$time.series[,3])
 
 
 
-###3a
+#3
+###A)Deciding the proper transformation to apply
+
 ```{r}
 df=readxl::read_xlsx("data_g12.xlsx", sheet = 1)
 house.ts <- ts(df[,2], frequency = 12,start = c(1997,1))
 plot(house.ts)
 plot(log(house.ts))
 plot(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
+sd(house.ts)
+sd(log(house.ts))
+sd(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 ```
-comments
+
+Logaritmic and box cox transformation seems more or less the same, in both the variance compared to the untransformed variable is less.
 
 ```{r}
 tsdisplay(house.ts)
 tsdisplay(log(house.ts))
 tsdisplay(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 ```
-comments
-Since the decomposition we decided to use is multiplicative the box cox transformation is the best fit.
 
-###3b
+We decide to use box cox since it allows us tuning at its best parameter lambda.
+
+###B)Checking if there is seasonality
 
 ```{r Periodgram}
 spec.pgram(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 ```
-comments Doe not seem to occur seasonality
+
+Does not seem to occur seasonality since there are no visible patterns in the spectrogram.
 
 
 ```{r ACF and PACF}
 acf2(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 ```
-comments time series not stationary x2
-In the PACF there is only one initial spike and then the vaues'modulus decrease to zero. 
+
+Since the ACF slowly goes to zero, and in the PACF there is only one initial spike and then the vaues'modulus decrease to zero, the series is not stationary. 
 
 
 ```{r seasonplot and monthplot}
 ggseasonplot(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 ggmonthplot(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 ```
-comments ther is NO seasonality since all the months look the same.
 
-###3.c
+Appears from both graphics to be a drop in august, probably due to holidays. But
+there is no seasonality since all the months look the same in the monthplot.
+
+###C) Decide the value of order of differentation
 The seires does not appear stationary to a visual inspection, we have a further proof from the two following tests:
 ```{r KPSS Test for Stationarity}
 kpss.test(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 ```
+
 H0:stationarity, we refuse stationarity.
 
 ```{r Augmented Dickey Fuller Test}
 adf.test(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)),alternative = "stationary")
 ```
+
 H0:non-stationarity, we accept non-stationarity.
 
 ```{r standard deviation}
@@ -187,23 +198,27 @@ acf2(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))))
 ```{r 1 diff KPSS Test for Stationarity}
 kpss.test(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))))
 ```
+
 H0:stationarity, we refuse stationarity.
 
 ```{r 1 diff Augmented Dickey Fuller Test}
 adf.test(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))),alternative = "stationary")
 ```
+
 H0:non-stationarity we refuse non stationarity.
 
 
 ```{r 1 diff Phillips Perron Unit Root Test}
 pp.test(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)),alternative = "stationary"))
 ```
+
 H0:non-stationarity, we refuse non stationarity.
 
 ```{r 1 diff standard deviation}
 sd(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))))
 ```
-Standard deviation strongly decrease from befor than differencing.
+
+Standard deviation strongly decrease from before than differencing.
 
 From the rough plot of the series can appear stationary,but one test is telling us it is not stationary and also ACF plot's spikes can be a sign of non-stationary.
 
@@ -220,29 +235,33 @@ acf2(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))))
 ```{r 2 diff KPSS Test for Stationarity}
 kpss.test(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))))
 ```
+
 H0:stationarity, we accept stationarity.
 
 ```{r 2 diff Augmented Dickey Fuller Test}
 adf.test(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))),alternative = "stationary"))
 ```
+
 H0:non-stationarity,we refuse non-stationarity.
 
 ```{r 2 diff Phillips Perron Unit Root Test}
 pp.test(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))),alternative = "stationary"))
 ```
+
 H0:non-stationarity,we refuse non-stationarity.
 
 ```{r 2 diff standard deviation}
 sd(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))))
 ```
 
-final check
+The series differenced twice is finally stationary.
 
+Final check
 ```{r}
 ndiffs(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)),alpha = 0.05)
 ```
 
-D=2
+We can conclude that the proper value of D is D=2.
 
 3.d)
 p,q, P and Q trying to interpret acf and pacf
