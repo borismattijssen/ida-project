@@ -109,10 +109,10 @@ The first method used ```("ets")``` seems to be the best one, as it shows a lowe
 ### Residuals
 
 Let's check the residuals distribution. It remaind us a normal shape distribution with zero mean, but unconstant variance.
-Furthermore, the ACF plot does not enhance any significant correlation between the residuals.
-We can assume they are independents.
+Furthermore, the ACF plot enhance a couple of significant spike, suggesting correlation between the residuals. This correlaiton is also confirmed in the periodogram, that underline a cyclic behaviour.
+We can not assume, therefore, that the residuals are independents.
 ```{r residuals}
-checkresiduals(stl.house$time.series[,3])
+tsdisplay(stl.house$time.series[,3], plot.type="spectrum")
 ```
 
 
