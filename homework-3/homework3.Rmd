@@ -129,7 +129,7 @@ sd(house.ts)
 sd(log(house.ts))
 ```
 
-Logaritmic and box cox transformation seems more or less the same, in both the variance compared to the untransformed variable is less.
+Logarithmic and box-cox transformation seems more or less the same, in both the variance compared to the untransformed variable is less.
 
 ```{r}
 tsdisplay(house.ts)
@@ -137,7 +137,7 @@ tsdisplay(log(house.ts))
 tsdisplay(BoxCox(log(house.ts), lambda = BoxCox.lambda(house.ts)))
 ```
 
-We decide to use box cox since it allows us tuning at its best parameter lambda.
+We decide to use logarithmic transformation since the standard deviation is minor.
 
 ###B)Checking if there is seasonality
 
