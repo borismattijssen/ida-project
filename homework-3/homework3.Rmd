@@ -26,7 +26,7 @@ library("car")
 ### Time series description
 
 ```{r time series plot}
-df=readxl::read_xlsx("/home/mehdi/Téléchargements/data_g12.xlsx", sheet = 1)
+df=readxl::read_xlsx("data_g12.xlsx", sheet = 1)
 house.ts <- ts(df[,2], frequency = 12,start = c(1997,1))
 autoplot(house.ts)
 ```
@@ -121,7 +121,7 @@ tsdisplay(stl.house$time.series[,3], plot.type="spectrum")
 ###A)Deciding the proper transformation to apply
 
 ```{r}
-df=readxl::read_xlsx("/home/mehdi/Téléchargements/data_g12.xlsx", sheet = 1)
+df=readxl::read_xlsx("data_g12.xlsx", sheet = 1)
 house.ts <- ts(df[,2], frequency = 12,start = c(1997,1))
 plot(house.ts)
 plot(log(house.ts))
@@ -350,11 +350,11 @@ Here we see that `model.1` has the best predictive power because it has the lowe
 We will have a look at the `auto.arima()` function to see if it can find a better parameter set.
 
 ```{r}
-model.auto=auto.arima(house.ts)
+model.auto=auto.arima(log(house.ts))
 model.auto
 ```
 
-A model was found with (p,d,q) = (1,1,2) and (P,D,Q) = (1,0,1). The AIC is worse than our manual selected model, but it has better predictive power:
+A model was found with (p,d,q) = (2,1,2) and (P,D,Q) = (1,1,2). The AIC about the same as our manual selected model and it has about the same predictive power:
 
 ```{r}
 getrmse.bymodel(model.auto,h=12)
@@ -366,7 +366,7 @@ Problems, however, arise when we look at the residuals and model parameters. Fir
 cov2cor(model.auto$var.coef)
 ```
 
-We see that `sar1` and `sma1` have a correlation higher than 0.8. This is bad. Now, secondly, let us look at the residuals. They should be independently identically and normally distributed. This is what the residuals look like:
+We see that, among others, `ar1` and `ma1` have a correlation higher than 0.8. This is bad. Now, secondly, let us look at the residuals. They should be independently identically and normally distributed. This is what the residuals look like:
 
 ```{r}
 plot(model.auto$residuals)
@@ -381,7 +381,7 @@ model.auto.outliers = qqPlot(model.auto$residuals)
 The data does not look normally distributed. Let us remove the outliers and test for the above stated requirements.
 
 ```{r}
-model.auto.res.noo = model.auto$residuals[-c(117,119)]
+model.auto.res.noo = model.auto$residuals[-c(117,123)]
 # H0: The data are independently distributed 
 Box.test(model.auto.res.noo, lag=12, type="Ljung-Box", fitdf=3)
 ```
@@ -393,14 +393,14 @@ The Ljung-Box test tells us that the residuals are not independently distributed
 t.test(model.auto.res.noo)
 ```
 
-The Student's t-test tells us that we can accept the residuals mean to be 0. 
+The Student's t-test tells us that we cannot accept the residuals mean to be 0. 
 
 ```{r}
 # H0: Skewness and kurtosis are both 0
 jarque.bera.test(model.auto.res.noo)
 ```
 
-The Jarque Bera test tells us that we cannot accept that the skewness and kurtosis of the residuals are both 0 (like the normal distribution).
+The Jarque Bera test tells us that we can accept that the skewness and kurtosis of the residuals are both 0 (like the normal distribution) if we use 0.05 as our p-value.
 
 Also, when looking at the frequency spectrum of the residuals, we can see that certain frequencies are more present. An independent process is expected to have equal presence of all frequencies. Hence, the residuals are not independently distribured.
 ```{r}
@@ -408,4 +408,4 @@ Also, when looking at the frequency spectrum of the residuals, we can see that c
 tsdisplay(model.auto.res.noo, plot.type="spectrum")
 ```
 
-We conclude that the automatically selected ARIMA model does not suffice and we will therefore advise to select our manually chosen model `model.1`.
+We can observe that `model.1` and the automatically selected ARIMA model have about the same performance (in terms of AICc and RMSE). Also, both invalidate the requirements for the residuals. Therefore, we conclude that both models could be chosen equally well.
