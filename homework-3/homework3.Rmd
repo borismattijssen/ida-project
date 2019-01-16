@@ -26,7 +26,7 @@ library("car")
 ### Time series description
 
 ```{r time series plot}
-df=readxl::read_xlsx("data_g12.xlsx", sheet = 1)
+df=readxl::read_xlsx("/home/mehdi/Téléchargements/data_g12.xlsx", sheet = 1)
 house.ts <- ts(df[,2], frequency = 12,start = c(1997,1))
 autoplot(house.ts)
 ```
@@ -121,7 +121,7 @@ tsdisplay(stl.house$time.series[,3], plot.type="spectrum")
 ###A)Deciding the proper transformation to apply
 
 ```{r}
-df=readxl::read_xlsx("data_g12.xlsx", sheet = 1)
+df=readxl::read_xlsx("/home/mehdi/Téléchargements/data_g12.xlsx", sheet = 1)
 house.ts <- ts(df[,2], frequency = 12,start = c(1997,1))
 plot(house.ts)
 plot(log(house.ts))
@@ -266,25 +266,32 @@ We can conclude that the proper value of D is D=2.
 3.d)
 p,q, P and Q trying to interpret acf and pacf
 ```{r}
-model.1=Arima(house.ts,order=c(2,1,0),seasonal=list(order=c(0,1,1), period=12))
-model.2=Arima(house.ts,order=c(2,1,0),seasonal=list(order=c(3,1,0), period=12))
-model.3=Arima(house.ts,order=c(2,1,0),seasonal=list(order=c(3,1,1), period=12))
-model.4=Arima(house.ts,order=c(0,1,4),seasonal=list(order=c(3,1,0), period=12))
-model.5=Arima(house.ts,order=c(0,1,4),seasonal=list(order=c(0,1,1), period=12))
-
+model.1=Arima(log(house.ts),order=c(2,1,0),seasonal=list(order=c(0,1,1), period=12))
+model.2=Arima(log(house.ts),order=c(2,1,0),seasonal=list(order=c(3,2,0), period=12))
+model.3=Arima(log(house.ts),order=c(2,1,0),seasonal=list(order=c(3,3,1), period=12))
+model.4=Arima(log(house.ts),order=c(0,1,4),seasonal=list(order=c(3,1,0), period=12))
+model.5=Arima(log(house.ts),order=c(0,1,4),seasonal=list(order=c(0,2,1), period=12))
 ```
 
-Based on the AICc, the winner is model.3
+Based on the AICc, the winner is model.1 but it doesn't seem to validate the assumptions residuals.
+Now let's check the correlation between the coefficient of the model:
+
 ```{r}
-plot(model.3$residuals)
-t.test(model.3$residuals)
-Box.test(model.3$residuals, lag=20, fitdf=5, type="L")
-jarque.bera.test(model.3$residuals)
-which.max(model.3$residuals)
-jarque.bera.test(model.3$residuals[-325])
+cov2cor(model.1$var.coef)
 ```
 
-Quite not sure about it 
+There is few correlation between the coefficient of the model.1 which is good.
+
+3.e) Below, the diagnostic of the residuals for the final model.1: 
+```{r}
+plot(model.1$residuals)
+t.test(model.1$residuals)
+Box.test(model.1$residuals, lag=12, type="L")
+jarque.bera.test(model.1$residuals)
+which.max(model.1$residuals)
+jarque.bera.test(model.1$residuals[-117])
+```
+
 
 ### 3f
 To forecast the timeseries we use the `forecast()` function for `model.1`.
@@ -302,7 +309,6 @@ To estimate the RMSE we first define the `getrmse` function. Also, a function `g
 # With this function you use the data but the last 12 observations as the training set, 
 # and use the last 12 observations to test the model and compute RMSE (and other measures of accuracy)
 # with these 12 observations. 
-
 getrmse <- function(x,h,...)
 {
   train.end <- time(x)[length(x)-h]   #train data end
@@ -313,7 +319,6 @@ getrmse <- function(x,h,...)
   fc <- forecast(fit,h=h) # forecast with model
   return(accuracy(fc,test)[2,"RMSE"]) #compare forecast with test data, extract the rmse
 }
-
 # Extract ARIMA parameters from the model and call `getrmse` accordingly.
 getrmse.bymodel <- function(model,h)
 {
@@ -345,11 +350,11 @@ Here we see that `model.1` has the best predictive power because it has the lowe
 We will have a look at the `auto.arima()` function to see if it can find a better parameter set.
 
 ```{r}
-model.auto=auto.arima(log(house.ts))
+model.auto=auto.arima(house.ts)
 model.auto
 ```
 
-A model was found with (p,d,q) = (2,1,2) and (P,D,Q) = (1,1,2). The AIC about the same as our manual selected model and it has about the same predictive power:
+A model was found with (p,d,q) = (1,1,2) and (P,D,Q) = (1,0,1). The AIC is worse than our manual selected model, but it has better predictive power:
 
 ```{r}
 getrmse.bymodel(model.auto,h=12)
@@ -361,7 +366,7 @@ Problems, however, arise when we look at the residuals and model parameters. Fir
 cov2cor(model.auto$var.coef)
 ```
 
-We see that, among others, `ar1` and `ma1` have a correlation higher than 0.8. This is bad. Now, secondly, let us look at the residuals. They should be independently identically and normally distributed. This is what the residuals look like:
+We see that `sar1` and `sma1` have a correlation higher than 0.8. This is bad. Now, secondly, let us look at the residuals. They should be independently identically and normally distributed. This is what the residuals look like:
 
 ```{r}
 plot(model.auto$residuals)
@@ -376,7 +381,7 @@ model.auto.outliers = qqPlot(model.auto$residuals)
 The data does not look normally distributed. Let us remove the outliers and test for the above stated requirements.
 
 ```{r}
-model.auto.res.noo = model.auto$residuals[-c(117,123)]
+model.auto.res.noo = model.auto$residuals[-c(117,119)]
 # H0: The data are independently distributed 
 Box.test(model.auto.res.noo, lag=12, type="Ljung-Box", fitdf=3)
 ```
@@ -388,14 +393,14 @@ The Ljung-Box test tells us that the residuals are not independently distributed
 t.test(model.auto.res.noo)
 ```
 
-The Student's t-test tells us that we cannot accept the residuals mean to be 0. 
+The Student's t-test tells us that we can accept the residuals mean to be 0. 
 
 ```{r}
 # H0: Skewness and kurtosis are both 0
 jarque.bera.test(model.auto.res.noo)
 ```
 
-The Jarque Bera test tells us that we can accept that the skewness and kurtosis of the residuals are both 0 (like the normal distribution) if we use 0.05 as our p-value.
+The Jarque Bera test tells us that we cannot accept that the skewness and kurtosis of the residuals are both 0 (like the normal distribution).
 
 Also, when looking at the frequency spectrum of the residuals, we can see that certain frequencies are more present. An independent process is expected to have equal presence of all frequencies. Hence, the residuals are not independently distribured.
 ```{r}
@@ -403,4 +408,4 @@ Also, when looking at the frequency spectrum of the residuals, we can see that c
 tsdisplay(model.auto.res.noo, plot.type="spectrum")
 ```
 
-We can observe that `model.1` and the automatically selected ARIMA model have about the same performance (in terms of AICc and RMSE). Also, both invalidate the requirements for the residuals. Therefore, we conclude that both models could be chosen equally well.
+We conclude that the automatically selected ARIMA model does not suffice and we will therefore advise to select our manually chosen model `model.1`.
