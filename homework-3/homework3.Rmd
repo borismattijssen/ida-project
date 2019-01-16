@@ -259,7 +259,7 @@ Final check
 ndiffs(log(house.ts),alpha = 0.05)
 ```
 
-We can conclude that the proper value of D is D=2.
+We can conclude that the proper value of D is d=2.
 
 3.d)
 p,q, P and Q trying to interpret acf and pacf
