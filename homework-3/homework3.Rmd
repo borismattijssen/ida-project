@@ -287,10 +287,10 @@ jarque.bera.test(model.3$residuals[-325])
 Quite not sure about it 
 
 ### 3f
-To forecast the timeseries we use the `forecast()` function for `model.3`.
+To forecast the timeseries we use the `forecast()` function for `model.1`.
 
 ```{r}
-plot(forecast(model.3, h=12))
+plot(forecast(model.1, h=12))
 ```
 
 ### 3g
@@ -339,7 +339,7 @@ rmse5 = getrmse.bymodel(model.5, h=12)
 c(rmse1, rmse2, rmse3, rmse4, rmse5)
 ```
 
-Here we see that `model.2` has the best predictive power because it has the lowest RMSE.
+Here we see that `model.1` has the best predictive power because it has the lowest RMSE.
 
 ### 3h
 We will have a look at the `auto.arima()` function to see if it can find a better parameter set.
@@ -349,7 +349,7 @@ model.auto=auto.arima(log(house.ts))
 model.auto
 ```
 
-A model was found with (p,d,q) = (2,1,2) and (P,D,Q) = (1,1,2). The AIC is worse than our manual selected model, but it has better predictive power:
+A model was found with (p,d,q) = (2,1,2) and (P,D,Q) = (1,1,2). The AIC about the same as our manual selected model and it has about the same predictive power:
 
 ```{r}
 getrmse.bymodel(model.auto,h=12)
@@ -403,4 +403,4 @@ Also, when looking at the frequency spectrum of the residuals, we can see that c
 tsdisplay(model.auto.res.noo, plot.type="spectrum")
 ```
 
-We conclude that the automatically selected ARIMA model does not suffice and we will therefore advise to select our manually chosen model `model.3`.
+We can observe that `model.1` and the automatically selected ARIMA model have about the same performance (in terms of AICc and RMSE). Also, both invalidate the requirements for the residuals. Therefore, we conclude that both models could be chosen equally well.
