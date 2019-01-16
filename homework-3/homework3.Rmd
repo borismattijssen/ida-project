@@ -125,10 +125,8 @@ df=readxl::read_xlsx("data_g12.xlsx", sheet = 1)
 house.ts <- ts(df[,2], frequency = 12,start = c(1997,1))
 plot(house.ts)
 plot(log(house.ts))
-plot(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 sd(house.ts)
 sd(log(house.ts))
-sd(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
 ```
 
 Logaritmic and box cox transformation seems more or less the same, in both the variance compared to the untransformed variable is less.
@@ -136,7 +134,7 @@ Logaritmic and box cox transformation seems more or less the same, in both the v
 ```{r}
 tsdisplay(house.ts)
 tsdisplay(log(house.ts))
-tsdisplay(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
+tsdisplay(BoxCox(log(house.ts), lambda = BoxCox.lambda(house.ts)))
 ```
 
 We decide to use box cox since it allows us tuning at its best parameter lambda.
@@ -144,22 +142,22 @@ We decide to use box cox since it allows us tuning at its best parameter lambda.
 ###B)Checking if there is seasonality
 
 ```{r Periodgram}
-spec.pgram(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
+spec.pgram(log(house.ts))
 ```
 
 Does not seem to occur seasonality since there are no visible patterns in the spectrogram.
 
 
 ```{r ACF and PACF}
-acf2(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
+acf2(log(house.ts))
 ```
 
 Since the ACF slowly goes to zero, and in the PACF there is only one initial spike and then the vaues'modulus decrease to zero, the series is not stationary. 
 
 
 ```{r seasonplot and monthplot}
-ggseasonplot(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
-ggmonthplot(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
+ggseasonplot(log(house.ts))
+ggmonthplot(log(house.ts))
 ```
 
 Appears from both graphics to be a drop in august, probably due to holidays. But
@@ -168,19 +166,19 @@ there is no seasonality since all the months look the same in the monthplot.
 ###C) Decide the value of order of differentation
 The seires does not appear stationary to a visual inspection, we have a further proof from the two following tests:
 ```{r KPSS Test for Stationarity}
-kpss.test(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
+kpss.test(log(house.ts))
 ```
 
 H0:stationarity, we refuse stationarity.
 
 ```{r Augmented Dickey Fuller Test}
-adf.test(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)),alternative = "stationary")
+adf.test(log(house.ts),alternative = "stationary")
 ```
 
 H0:non-stationarity, we accept non-stationarity.
 
 ```{r standard deviation}
-sd(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))
+sd(log(house.ts))
 ```
 
 Since our series is not stationary and ARIMA only works with stationary series we try to make it stanionary by applying some transformations.
@@ -189,33 +187,33 @@ Since our series is not stationary and ARIMA only works with stationary series w
 We try differencing once:
 
 ```{r one differentiation}
-plot(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))))
+plot(diff(log(house.ts)))
 ```
 ```{r 1 diff ACF and PACF}
-acf2(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))))
+acf2(diff(log(house.ts)))
 ```
 
 ```{r 1 diff KPSS Test for Stationarity}
-kpss.test(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))))
+kpss.test(diff(log(house.ts)))
 ```
 
 H0:stationarity, we refuse stationarity.
 
 ```{r 1 diff Augmented Dickey Fuller Test}
-adf.test(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))),alternative = "stationary")
+adf.test(diff(log(house.ts)),alternative = "stationary")
 ```
 
 H0:non-stationarity we refuse non stationarity.
 
 
 ```{r 1 diff Phillips Perron Unit Root Test}
-pp.test(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)),alternative = "stationary"))
+pp.test(diff(BoxCox(log(house.ts), lambda = BoxCox.lambda(house.ts)),alternative = "stationary"))
 ```
 
 H0:non-stationarity, we refuse non stationarity.
 
 ```{r 1 diff standard deviation}
-sd(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))))
+sd(diff(log(house.ts)))
 ```
 
 Standard deviation strongly decrease from before than differencing.
@@ -226,39 +224,39 @@ From the rough plot of the series can appear stationary,but one test is telling 
 Lets try differencing twice.
 
 ```{r two differentiations}
-plot(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))))
+plot(diff(diff(log(house.ts))))
 ```
 ```{r 2 diff ACF and PACF}
-acf2(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))))
+acf2(diff(diff(log(house.ts))))
 ```
 
 ```{r 2 diff KPSS Test for Stationarity}
-kpss.test(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))))
+kpss.test(diff(diff(log(house.ts))))
 ```
 
 H0:stationarity, we accept stationarity.
 
 ```{r 2 diff Augmented Dickey Fuller Test}
-adf.test(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))),alternative = "stationary"))
+adf.test(diff(diff(log(house.ts),alternative = "stationary")))
 ```
 
 H0:non-stationarity,we refuse non-stationarity.
 
 ```{r 2 diff Phillips Perron Unit Root Test}
-pp.test(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts))),alternative = "stationary"))
+pp.test(diff(diff(log(house.ts),alternative = "stationary")))
 ```
 
 H0:non-stationarity,we refuse non-stationarity.
 
 ```{r 2 diff standard deviation}
-sd(diff(diff(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)))))
+sd(diff(diff(log(house.ts))))
 ```
 
 The series differenced twice is finally stationary.
 
 Final check
 ```{r}
-ndiffs(BoxCox(house.ts, lambda = BoxCox.lambda(house.ts)),alpha = 0.05)
+ndiffs(log(house.ts),alpha = 0.05)
 ```
 
 We can conclude that the proper value of D is D=2.
@@ -350,11 +348,11 @@ Here we see that `model.1` has the best predictive power because it has the lowe
 We will have a look at the `auto.arima()` function to see if it can find a better parameter set.
 
 ```{r}
-model.auto=auto.arima(log(house.ts))
+model.auto=auto.arima(house.ts)
 model.auto
 ```
 
-A model was found with (p,d,q) = (2,1,2) and (P,D,Q) = (1,1,2). The AIC about the same as our manual selected model and it has about the same predictive power:
+A model was found with (p,d,q) = (1,1,2) and (P,D,Q) = (1,0,1). The AIC is worse than our manual selected model, but it has better predictive power:
 
 ```{r}
 getrmse.bymodel(model.auto,h=12)
@@ -366,7 +364,7 @@ Problems, however, arise when we look at the residuals and model parameters. Fir
 cov2cor(model.auto$var.coef)
 ```
 
-We see that, among others, `ar1` and `ma1` have a correlation higher than 0.8. This is bad. Now, secondly, let us look at the residuals. They should be independently identically and normally distributed. This is what the residuals look like:
+We see that `sar1` and `sma1` have a correlation higher than 0.8. This is bad. Now, secondly, let us look at the residuals. They should be independently identically and normally distributed. This is what the residuals look like:
 
 ```{r}
 plot(model.auto$residuals)
@@ -381,7 +379,7 @@ model.auto.outliers = qqPlot(model.auto$residuals)
 The data does not look normally distributed. Let us remove the outliers and test for the above stated requirements.
 
 ```{r}
-model.auto.res.noo = model.auto$residuals[-c(117,123)]
+model.auto.res.noo = model.auto$residuals[-c(117,119)]
 # H0: The data are independently distributed 
 Box.test(model.auto.res.noo, lag=12, type="Ljung-Box", fitdf=3)
 ```
@@ -393,14 +391,14 @@ The Ljung-Box test tells us that the residuals are not independently distributed
 t.test(model.auto.res.noo)
 ```
 
-The Student's t-test tells us that we cannot accept the residuals mean to be 0. 
+The Student's t-test tells us that we can accept the residuals mean to be 0. 
 
 ```{r}
 # H0: Skewness and kurtosis are both 0
 jarque.bera.test(model.auto.res.noo)
 ```
 
-The Jarque Bera test tells us that we can accept that the skewness and kurtosis of the residuals are both 0 (like the normal distribution) if we use 0.05 as our p-value.
+The Jarque Bera test tells us that we cannot accept that the skewness and kurtosis of the residuals are both 0 (like the normal distribution).
 
 Also, when looking at the frequency spectrum of the residuals, we can see that certain frequencies are more present. An independent process is expected to have equal presence of all frequencies. Hence, the residuals are not independently distribured.
 ```{r}
@@ -408,4 +406,4 @@ Also, when looking at the frequency spectrum of the residuals, we can see that c
 tsdisplay(model.auto.res.noo, plot.type="spectrum")
 ```
 
-We can observe that `model.1` and the automatically selected ARIMA model have about the same performance (in terms of AICc and RMSE). Also, both invalidate the requirements for the residuals. Therefore, we conclude that both models could be chosen equally well.
+We conclude that the automatically selected ARIMA model does not suffice and we will therefore advise to select our manually chosen model `model.1`.
