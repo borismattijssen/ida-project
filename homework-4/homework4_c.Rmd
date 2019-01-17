@@ -43,23 +43,6 @@ clinical.stage.compact = data.frame(
 )
 ```
 
-```{r eval=FALSE, include=FALSE}
-histological.classification = data.frame( 
-  "cat" = c("LOW_GRADE", "HIGH_GRADE"),
-  "10-19" =
-  "20-29" =
-  "30-39" =
-  "40-44" =
-  "45-49" =
-  "50-54" =
-  "55-59" =
-  "60-64" =
-  "65-69" =
-  "70-79" =
-  "80-89" =
-  "90+" =
-)
-```
 
 ```{r, include=FALSE}
 var.overview.clinical <- function(df) {
@@ -75,9 +58,21 @@ var.overview.clinical <- function(df) {
 }
 ```
 
+
+In this section we study the different groups of people, based on age ranges.
+First we set the evidence of a single age range, then we group ranges that report the same value for the specific variable we are analyzing.
+
 ### Clinical stage
 
+The first variable we take in consideration is ```Clinical Stage```. We obtain 7 age range, as we can see in the graphs below.
 
 ```{r, echo=FALSE, fig.height = 8, fig.width = 10}
 var.overview.clinical(clinical.stage.compact)
 ```
+
+
+If we compare them to the graphs differentiating people by alive or dead after 5 years (```5YearsResult```), we can notice some similarities.
+
+By visual inspection, we notice that age ranges ```30-39, 40-59, 60-64``` have a more similar distribution to the ```alive``` group, showing an higher probability to have ```clinical stage``` = ```I``` or ```II1```. 
+
+As opposite, the first groups ```10-29``` and the group of people ```65-69, 70-89, 90+```, show a behaviour more comparable to the group having ```death``` as ```5YearsResult```, this is, having a lower probability to have ```clinical stage``` = ```I``` or ```II1```, and an higher one to have ```clinical stage``` = ```II2```, ```III``` or ```IV```
