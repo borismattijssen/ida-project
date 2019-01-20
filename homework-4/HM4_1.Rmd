@@ -1,0 +1,81 @@
+---
+title: "4.1"
+output: html_document
+self_contained: no
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+```
+
+#HomeWork 4.1
+
+In this homework we will use the software GeNIe for building and querying graphicals models for decision making.
+Our aim is to improve the therapeutic iter patients affected by the Non-Hodgkin lymphoma are going through, enhancing their chances to survive.
+
+##Task 1
+
+We have to predict for each patient which is the best treatment for their Non-Hodgkin lymphoma of the stomach. For each patient we have the following informations:
+
++ Age, that in the pre-built network on GeNIe is given in 5/10 years classes
+
++ Particular stage of the disease
+
++ Histological classi???cation, which stands for the assessment by a pathologist of tumour tissue obtained from a biopsy
+
++ Whether the disease is bulky or non-bulky
+
++ Whether is present or absent the bacterium Helicobacter pylori
+
++ The gastric clinical condition the patient suffers from
+
+```{r}
+patiens=data.frame(rbind(
+c(61,"I","high","nonbulky","absent","perforation"),
+c(39,"I","high","bulky","absent","none"),
+c(64,"I","low","nonbulky","present","none"),
+c(63,"II1","high","nonbulky","present","obstruction"),
+c(77,"II1","low","nonbulky","present","none"),
+c(82,"II1","high","bulky","absent","none"),
+c(46,"II1","high","nonbulky","present","hemorrhage"),
+c(60,"I","high","nonbulky","present","none"),
+c(47,"I","high","bulky","present","none"),
+c(67,"IV","high","nonbulky","absent","none"),
+c(73,"IV","high","bulky","absent","none")),
+stringsAsFactors= T
+)
+
+colnames(patiens)<-c("Age","ClinicalStage","HistClassification","BulkyDisease","HelicobacterPylori","GastrClinCond")
+
+patiens
+```
+
+
+In order to suggest the best cures, we used the software GeNIe.
+Inside the software we tried, for every patient's attributes, the twelve different curative possibilities given. As measure of the treatment's succes we have watched firstly at *5YearsResult* and then at *PostTreatmentResult*. Our aim has been to ensure the patient the best possibilities to survive, regardingless other importants aspects than can be evaluated in such cases(e.g. patient's psychological wellbeing) 
+
+```{r}
+suggestedtreatment=data.frame(rbind(
+  c("none","chemio",0.67,0.86),
+  c("palliative","both",0.27,0.80),
+  c("palliative","both",0.39,0.95),
+  c("palliative","both",0.29,0.85),
+  c("palliative","both",0.37,0.90),
+  c("palliative","both",0.23,0.75),
+  c("palliative","both",0.43,0.85),
+  c("palliative","both",0.33,0.90),
+  c("palliative","both",0.27,0.80),
+  c("palliative","both",0.18,0.65),
+  c("palliative","both",0.07,0.45)
+))
+colnames(suggestedtreatment)<-c("Surgery","ctrtSchedule","5YearsResult","PostTreatmentResult")
+
+suggestedtreatment
+```
+
+
+![Screenshot of GeNIe](C:\Users\utente\Desktop\Intelligent Data Analysis\genie.PNG)
+
