@@ -13,6 +13,7 @@ library("kableExtra")
 ```
 
 ## Differences after five years
+4.a)
 In this section we will study the differences between the people who are either still alive or have died five years after the treatment. We set the evidence to either `alive` or `death` in the `FIVEYEARRESULT` node of the network. We can now directly observe the probabilities of the clinical stage, histological classification, bulky disease, and clinical representation. The age distribution cannot be observed. For this, we would need information about the treatment. 
 
 ```{r, include=FALSE}
@@ -35,6 +36,11 @@ clinical.presentation = data.frame(
   "cat" = c("NONE", "HEMORRHAGE", "PERFORATION", "OBSTRUCTION"),
   "alive" = c(0.7547050794317334, 0.1895922818616187, 0.04543966071234194, 0.01026297799430604),
   "death" = c(0.8604918969304747, 0.1123379436795314, 0.01719911306344046, 0.009971046326553521)
+)
+general.health.status = data.frame(
+  "cat" = c("POOR", "AVERAGE", "GOOD"),
+  "alive" = c(0.23539171, 0.24632971, 0.51827858),
+  "death" = c(0.0915106, 0.21178665, 0.69670273)
 )
 var.overview <- function(df) {
   t = tableGrob(df)
@@ -75,3 +81,147 @@ The clinical presentation differs mainly for hemmorage. From the alive group 7.2
 ```{r, echo=FALSE, fig.height = 2, fig.width = 10}
 var.overview(clinical.presentation)
 ```
+
+### General health status
+
+The General Health Status differs mainly for POOR. Indeed, for the alive group, 23.5% of people have a poor general health status comparing the 9% for the death group. 
+```{r, echo=FALSE, fig.height = 2, fig.width = 10}
+var.overview(general.health.status)
+```
+
+
+4.c)
+In this section, we will try to see if age is also a factor that affects the results of this question, i.e. if different patient
+groups can be distinguished:
+```{r, include=FALSE}
+library("gridExtra")
+library("ggplot2")
+library("knitr")
+library("kableExtra")
+library("ggpubr")
+```
+
+```{r, include=FALSE}
+## Differences after five years
+clinical.stage = data.frame( 
+  "cat" = c("I","II1","II2","III","IV"),
+  "10-19" = c(0.25,0.3,0.25,0,0.2),
+  "20-29" = c(0.25,0.3,0.25,0,0.2),
+  "30-39" = c(0.5, 0.25, 0.15, 0, 0.1),
+  "40-44" = c(0.6, 0.2, 0.1, 0, 0.1),
+  "45-49" = c(0.6, 0.2, 0.1, 0, 0.1),
+  "50-54" = c(0.6, 0.2, 0.1, 0, 0.1),
+  "55-59" = c(0.6, 0.2, 0.1, 0, 0.1),
+  "60-64" = c(0.5, 0.25, 0.15, 0, 0.1),
+  "65-69" = c(0.425,0.275,0.15,0.01,0.14),
+  "70-79" = c(0.25,0.35,0.25,0.1,0.14),
+  "80-89" = c(0.25,0.35,0.25,0.1,0.14),
+  "90+" = c(0.2,0.28,0.22,0.1,0.2)
+)
+clinical.stage.compact = data.frame( 
+  "cat" = c("I","II1","II2","III","IV"),
+  "from10to29" = c(0.25,0.3,0.25,0,0.2),
+  "from30to39" = c(0.5, 0.25, 0.15, 0, 0.1),
+  "from40to59" = c(0.6, 0.2, 0.1, 0, 0.1),
+  "from60to64" = c(0.5, 0.25, 0.15, 0, 0.1),
+  "from65to69" = c(0.425,0.275,0.15,0.01,0.14),
+  "from70to89" = c(0.25,0.35,0.25,0.1,0.14),
+  "from90to99" = c(0.2,0.28,0.22,0.1,0.2)
+)
+```
+
+
+```{r, include=FALSE}
+var.overview.clinical <- function(df) {
+  #t = tableGrob(df)
+  p1 = ggplot(df, aes(x="", y=from10to29, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("10 - 29")+ geom_text(aes(label=from10to29), position = position_stack(vjust = 0.5))
+  p2 = ggplot(df, aes(x="", y=from30to39, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("30 - 39")+ geom_text(aes(label=from30to39), position = position_stack(vjust = 0.5))
+  p3 = ggplot(df, aes(x="", y=from40to59, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("40 - 59")+ geom_text(aes(label=from40to59), position = position_stack(vjust = 0.5))
+  p4 = ggplot(df, aes(x="", y=from60to64, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("60 - 64")+ geom_text(aes(label=from60to64), position = position_stack(vjust = 0.5))
+  p5 = ggplot(df, aes(x="", y=from65to69, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("65 - 69")+ geom_text(aes(label=from65to69), position = position_stack(vjust = 0.5))
+  p6 = ggplot(df, aes(x="", y=from70to89, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("70 - 89")+ geom_text(aes(label=from70to89), position = position_stack(vjust = 0.5))
+  p7 = ggplot(df, aes(x="", y=from90to99, fill=cat)) + geom_bar(stat="identity", width=1) + ylab(" 90 + ")+ geom_text(aes(label=from90to99), position = position_stack(vjust = 0.5))
+  return(ggarrange(p1, p2, p3, p4, p5, p6, p7, ncol = 4,nrow = 2, common.legend = TRUE, legend = c("right")))
+}
+```
+
+
+In this section we study the different groups of people, based on age ranges.
+First we set the evidence of a single age range, then we group ranges that report the same value for the specific variable we are analyzing.
+
+### Clinical stage
+
+The first variable we take in consideration is ```Clinical Stage```. We obtain 7 age range, as we can see in the graphs below.
+
+```{r, echo=FALSE, fig.height = 8, fig.width = 10}
+var.overview.clinical(clinical.stage.compact)
+```
+
+
+If we compare them to the graphs differentiating people by alive or dead after 5 years (```5YearsResult```), we can notice some similarities.
+
+By visual inspection, we notice that age ranges ```30-39, 40-59, 60-64``` have a more similar distribution to the ```alive``` group, showing an higher probability to have ```clinical stage``` = ```I``` or ```II1```. 
+
+As opposite, the first groups ```10-29``` and the group of people ```65-69, 70-89, 90+```, show a behaviour more comparable to the group having ```death``` as ```5YearsResult```, this is, having a lower probability to have ```clinical stage``` = ```I``` or ```II1```, and an higher one to have ```clinical stage``` = ```II2```, ```III``` or ```IV```
+
+
+```{r, include=FALSE}
+## Differences after five years
+general.health.status = data.frame( 
+  "cat" = c("POOR", "AVERAGE", "GOOD"),
+  "10-19" = c(0.002, 0.008, 0.99),
+  "20-29" = c(0.005, 0.01, 0.985),
+  "30-39" = c(0.01, 0.01, 0.98),
+  "40-44" = c(0.01, 0.02, 0.97),
+  "45-49" = c(0.03, 0.07, 0.9),
+  "50-54" = c(0.04, 0.08, 0.88),
+  "55-59" = c(0.05, 0.1, 0.85),
+  "60-64" = c(0.1, 0.2, 0.7),
+  "65-69" = c(0.15, 0.25, 0.6),
+  "70-79" = c(0.2, 0.5, 0.3),
+  "80-89" = c(0.4, 0.5, 0.1),
+  "90+" = c(0.6, 0.3, 0.1)
+)
+
+general.health.status.compact = data.frame( 
+  "cat" = c("POOR", "AVERAGE", "GOOD"),
+  "from10to29" = c(0.002, 0.008, 0.99),
+  "from30to39" = c(0.01, 0.01, 0.98),
+  "from40to59" = c(0.01, 0.02, 0.97),
+  "from60to64" = c(0.1, 0.2, 0.7),
+  "from65to69" = c(0.15, 0.25, 0.6),
+  "from70to89" = c(0.2, 0.5, 0.3),
+  "from90to99" = c(0.6, 0.3, 0.1)
+)
+```
+
+```{r, include=FALSE}
+var.overview.gen <- function(df) {
+  #t = tableGrob(df)
+  p1 = ggplot(df, aes(x="", y=from10to29, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("10 - 29")+ geom_text(aes(label=from10to29), position = position_stack(vjust = 0.5))
+  p2 = ggplot(df, aes(x="", y=from30to39, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("30 - 39")+ geom_text(aes(label=from30to39), position = position_stack(vjust = 0.5))
+  p3 = ggplot(df, aes(x="", y=from40to59, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("40 - 59")+ geom_text(aes(label=from40to59), position = position_stack(vjust = 0.5))
+  p4 = ggplot(df, aes(x="", y=from60to64, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("60 - 64")+ geom_text(aes(label=from60to64), position = position_stack(vjust = 0.5))
+  p5 = ggplot(df, aes(x="", y=from65to69, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("65 - 69")+ geom_text(aes(label=from65to69), position = position_stack(vjust = 0.5))
+  p6 = ggplot(df, aes(x="", y=from70to89, fill=cat)) + geom_bar(stat="identity", width=1) + guides(fill=FALSE) + ylab("70 - 89")+ geom_text(aes(label=from70to89), position = position_stack(vjust = 0.5))
+  p7 = ggplot(df, aes(x="", y=from90to99, fill=cat)) + geom_bar(stat="identity", width=1) + ylab(" 90 + ")+ geom_text(aes(label=from90to99), position = position_stack(vjust = 0.5))
+  return(ggarrange(p1, p2, p3, p4, p5, p6, p7, ncol = 4,nrow = 2, common.legend = TRUE, legend = c("right")))
+}
+```
+### General health status
+
+The second variable we take in consideration is ```General health status```. We obtain 7 age range, as we can see in the graphs below.
+
+```{r, echo=FALSE, fig.height = 8, fig.width = 10}
+var.overview.gen(general.health.status.compact)
+```
+
+We can also see some similarities with the plots differentiating people by alive or dead after 5 years (```5YearsResult```).
+
+By visual inspection, we notice that age ranges ```10-29, 30-39, 40-59, 60-64, 65-69``` show a higher probability to have ```General Health Status``` = ```GOOD```. 
+
+This property seems to dicrease with the age. 
+
+Indeed, the last groups ```70-89, 90+``` show another behaviour with a the probability of ```General Health Status``` = ```POOR``` or ```AVERAGE```getting higher.
+
+The group having ```death``` as ```5YearsResult``` shows the same distribution than the first ranges of age. 
